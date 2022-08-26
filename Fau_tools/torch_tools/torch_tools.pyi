@@ -39,6 +39,8 @@ class TrainRecorder:
 # --------------- Function --- tools
 # ------------------------------------------------------------
 
+def calc_time(function) -> None: ...
+
 def show_progress(now: int, total: int, loss: float=None, accuracy: float=None) -> None: ...
 
 

@@ -264,6 +264,8 @@ def draw_plot(*args, legend_names=None, x_name=None, y_name=None, percent=False)
 	This function could show a comparison of multiple models on a single plot.
 	For example, you can draw the accuracy of multiple models in a plot.
 
+	Notes: Please manually use 'plt.show()'.
+
 	Args:
 		*args (): the list of values. values: loss_values, accuracy rates ...
 		legend_names (): if the legend is required, please pass a list of names in order of the args.
@@ -293,4 +295,4 @@ def draw_plot(*args, legend_names=None, x_name=None, y_name=None, percent=False)
 		y_ticks_percent = [f"{op:.2%}" for op in y_ticks]  # convert to percent
 		plt.yticks(y_ticks, y_ticks_percent)
 
-	plt.show()
+	# plt.show()  # Note: This will lead to show the figure one by one.
