@@ -28,7 +28,7 @@ class ModelManager:
 			self.loss, self.accuracy = loss, accuracy
 			self.model = model
 		elif accuracy > self.accuracy and accuracy - self.accuracy <= 5E-3:
-			if loss - self.loss <= 5E-3:  # slightly increase acc and loss is ok
+			if loss - self.loss <= 1E-1:  # slightly increase acc and loss is ok
 				self.loss, self.accuracy = loss, accuracy
 				self.model = model
 		elif self.accuracy < accuracy:
