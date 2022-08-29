@@ -2,6 +2,8 @@ import pandas as pd
 import torch
 import matplotlib.pyplot as plt
 
+from Fau_tools import Fau
+
 
 
 # ------------------------------------------------------------
@@ -92,27 +94,11 @@ class TrainRecorder:
 
 
 
+
+
 # ------------------------------------------------------------
-# --------------- Function --- tools
+# --------------- Function --- training
 # ------------------------------------------------------------
-
-def calc_time(function):
-	"""
-	A decorator, used to display the function begin, end and the cost of time.
-	"""
-	def wrapper(*args, **kwargs):
-		print('-' * 15, "BEGIN", function.__name__, '-' * 15)
-		import time
-		BEGIN = time.time()
-		res = function(*args, **kwargs)
-		END = time.time()
-		print(f"{function.__name__} cost: {END - BEGIN:.6f}s")
-		print('-' * 15, " END ", function.__name__, '-' * 15)
-		return res
-
-	return wrapper
-
-
 
 def show_progress(now, total, loss=None, accuracy=None):
 	"""
@@ -141,12 +127,6 @@ def show_progress(now, total, loss=None, accuracy=None):
 	print(show)
 
 
-
-
-
-# ------------------------------------------------------------
-# --------------- Function --- training
-# ------------------------------------------------------------
 
 def calc_accuracy(model, test_loader, DEVICE=None):
 	"""
@@ -177,7 +157,7 @@ def calc_accuracy(model, test_loader, DEVICE=None):
 
 
 
-@calc_time
+@Fau.calc_time
 def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOCH=100, DEVICE=None, SAVE_NAME=None):
 	"""
 	A function for training the best model.
@@ -296,3 +276,8 @@ def draw_plot(*args, legend_names=None, x_name=None, y_name=None, percent=False)
 		plt.yticks(y_ticks, y_ticks_percent)
 
 	# plt.show()  # Note: This will lead to show the figure one by one.
+
+
+
+if __name__ == '__main__':
+	print("In main")

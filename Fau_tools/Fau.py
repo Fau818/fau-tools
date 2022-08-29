@@ -16,42 +16,6 @@ def calc_time(function):
 
 
 
-def show_progress(now, total, loss=None, accuracy=None):
-	now += 1  # remap 0 -> 1
-	FINISH, UNFINISH = '█', ' '
-	N = 30  # the length
-	PERCENT = now / total
-
-	# main operation
-	finish = int(PERCENT * N) * FINISH
-	unfinish = (N - len(finish)) * UNFINISH
-	show = f"|{finish}{unfinish}| {PERCENT:.2%}"
-	if loss is not None: show += f"  loss: {loss:.4f}"
-	if accuracy is not None: show += f"  accuracy: {accuracy:.2%}"
-
-	print(show)
-
-
-def calc_accuracy(model, test_loader, DEVICE=None):
-	model.eval()  # no dropout...
-	if DEVICE is None: DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-	test_result = list()
-	for (test_x, test_y) in test_loader:
-		test_x, test_y = test_x.to(DEVICE), test_y.to(DEVICE)
-		test_output: torch.Tensor = model(test_x)
-		test_prediction: torch.Tensor = test_output.argmax(1)  # get classification result set
-		cur_accuracy: torch.Tensor = sum(test_prediction.eq(test_y)) / test_y.size(0)
-		test_result.append(cur_accuracy.item())  # tensor -> scaler
-
-	model.train()  # recover
-	accuracy: float = sum(test_result) / len(test_result)  # get average
-	return round(accuracy, 6)
-
-
-
-
-
 
 
 
@@ -124,3 +88,6 @@ def calc_accuracy(model, test_loader, DEVICE=None):
 # 	a = np.dot(np.dot(np.linalg.inv(np.dot(X.T, X)), X.T), Y)[0, 0]
 # 	b = (sum(list_y) - a * sum(list_x)) / n
 # 	return a, b
+
+
+print("IN FAU")

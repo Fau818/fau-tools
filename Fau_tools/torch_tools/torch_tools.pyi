@@ -34,25 +34,13 @@ class TrainRecorder:
 
 
 
-
-# ------------------------------------------------------------
-# --------------- Function --- tools
-# ------------------------------------------------------------
-
-def calc_time(function) -> None: ...
-
-def show_progress(now: int, total: int, loss: float=None, accuracy: float=None) -> None: ...
-
-
-
-
-
 # ------------------------------------------------------------
 # --------------- Function --- training
 # ------------------------------------------------------------
 
-def calc_accuracy(model: nn.Module, test_loader: tdata.DataLoader, DEVICE: torch.device=None) -> float: ...
+def show_progress(now: int, total: int, loss: float=None, accuracy: float=None) -> None: ...
 
+def calc_accuracy(model: nn.Module, test_loader: tdata.DataLoader, DEVICE: torch.device=None) -> float: ...
 
 def torch_train(model: nn.Module, train_loader: tdata.DataLoader, test_loader: tdata.DataLoader,
                 optimizer: torch.optim.Optimizer, loss_function: nn.Module, EPOCH: int=100,
