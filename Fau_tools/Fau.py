@@ -88,6 +88,3 @@ def calc_time(function):
 # 	a = np.dot(np.dot(np.linalg.inv(np.dot(X.T, X)), X.T), Y)[0, 0]
 # 	b = (sum(list_y) - a * sum(list_x)) / n
 # 	return a, b
-
-
-print("IN FAU")

@@ -276,8 +276,3 @@ def draw_plot(*args, legend_names=None, x_name=None, y_name=None, percent=False)
 		plt.yticks(y_ticks, y_ticks_percent)
 
 	# plt.show()  # Note: This will lead to show the figure one by one.
-
-
-
-if __name__ == '__main__':
-	print("In main")
