@@ -45,10 +45,13 @@ class ModelManager:
 
 		Returns: None
 		"""
-		postfix = f"{round(self.accuracy * 10000)}"  # 87.65%  ->  8765
+		postfix = self.get_postfix()  # 87.65%  ->  8765
 		file_name = rf"{file_name}_{postfix}"
 		if only_param: torch.save(self.model.state_dict(), rf"{file_name}.pth")
 		else: torch.save(self.model, rf"{file_name}.pth")
+
+
+	def get_postfix(self): return f"{round(self.accuracy * 10000)}"
 	# save and load model
 	# torch.save(model.state_dict(), "cnn_model.pth")
 	# model = model.load_state_dict(torch.load("cnn_model.pth"))
@@ -158,7 +161,7 @@ def calc_accuracy(model, test_loader, DEVICE=None):
 
 
 @Fau.calc_time
-def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOCH=100, DEVICE=None, SAVE_NAME=None):
+def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOCH=100, name=None, save_parameters=False, DEVICE=None):
 	"""
 	A function for training the best model.
 
@@ -169,12 +172,19 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 		optimizer (): optimizer function
 		loss_function (): loss function
 		EPOCH (): total EPOCH
+		name (): if the model need to be saved, please pass the model name without postfix.
+		save_parameters (): whether the optimizer and the loss function need to be saved.
 		DEVICE (): cpu or cuda; if it's None, it will judge for itself.
-		SAVE_NAME (): if the model need to be saved, please pass the model name without postfix.
 
 	Returns: None
 
+	some files will be generated.
+	the trained model file named f"{name}.pth".
+	the data of training process named f"{name}.csv".
+	the parameters of optimizer and loss function named f"{name}.txt".
+
 	"""
+
 	# Acquire device information
 	if DEVICE is None:
 		DEVICE_NAME = None
@@ -216,10 +226,22 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 		train_recorder.update(loss_value, accuracy)
 
 
-	if SAVE_NAME is None: return  # no save
+	if name is None: return  # no save
+
 	# save model and process
-	model_manager.save(SAVE_NAME)
-	train_recorder.save(f"{SAVE_NAME}_{round(model_manager.accuracy * 10000)}")
+	model_manager.save(name)
+	train_recorder.save(f"{name}_{model_manager.get_postfix()}")
+
+	if save_parameters:
+		parameters_filename = f"{name}_{model_manager.get_postfix()}.txt"
+		with open(parameters_filename, "w") as file:
+			# optimizer.__doc__
+			file.write(f"optimizer: \n{str(optimizer)}\n")
+			file.write(f"{'-' * 20}\n")
+			file.write(f"loss function: \n{str(loss_function)}")
+
+
+
 
 
 
