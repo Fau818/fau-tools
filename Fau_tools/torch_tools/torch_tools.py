@@ -142,7 +142,7 @@ def show_progress(now, total, loss=None, accuracy=None, time_manager=None):
 	"""
 	now += 1  # remap 0 -> 1
 	FINISH, UNFINISH = '█', ' '
-	N = 20  # the length
+	N = 30  # the length
 	PERCENT = now / total
 
 	# for showing blocks
@@ -154,11 +154,10 @@ def show_progress(now, total, loss=None, accuracy=None, time_manager=None):
 		average_time, elapsed_time = time_manager.get_average_time(), time_manager.get_elapsed_time()
 		total_time = total * average_time
 
-		average_time = Fau.time_to_human(average_time)
 		elapsed_time = Fau.time_to_human(elapsed_time)
 		total_time = Fau.time_to_human(total_time)
 
-		show += f" [{elapsed_time}<{total_time}, {average_time}]"
+		show += f" [{elapsed_time}<{total_time}]"
 
 	if loss: show += f"  loss: {loss:.4f}"
 	if accuracy: show += f"  accuracy: {accuracy:.2%}"
