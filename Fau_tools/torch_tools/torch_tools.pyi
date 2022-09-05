@@ -32,6 +32,23 @@ class TrainRecorder:
 
 
 
+class TimeManager:
+	def __init__(self):
+		self.TIME: float = ...
+		self.time_list: list = ...
+		self.elapsed_time: float = 0
+
+	def time_tick(self) -> None: ...
+
+	def get_average_time(self) -> float: ...
+
+	def get_elapsed_time(self) -> float: ...
+
+
+
+
+
+
 
 
 
@@ -40,7 +57,7 @@ class TrainRecorder:
 # --------------- Function --- training
 # ------------------------------------------------------------
 
-def show_progress(now: int, total: int, loss: float=None, accuracy: float=None) -> None: ...
+def show_progress(now: int, total: int, loss: float=None, accuracy: float=None, time_manager: TimeManager=None) -> None: ...
 
 def calc_accuracy(model: nn.Module, test_loader: tdata.DataLoader, DEVICE: torch.device=None) -> float: ...
 

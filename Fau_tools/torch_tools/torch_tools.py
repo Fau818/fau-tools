@@ -1,8 +1,12 @@
+import time
+
 import pandas as pd
 import torch
 import matplotlib.pyplot as plt
 
 from Fau_tools import Fau
+
+
 
 
 
@@ -92,6 +96,26 @@ class TrainRecorder:
 
 
 
+class TimeManager:
+	def __init__(self):
+		self.TIME = time.time()
+		self.time_list = [0]
+		self.elapsed_time = 0
+
+	def time_tick(self):
+		cur_time = time.time() - self.TIME
+		self.time_list.append(cur_time)
+		self.elapsed_time += cur_time
+
+	def get_average_time(self): return self.elapsed_time / (len(self.time_list) - 1)  # interval: len - 1
+
+	def get_elapsed_time(self): return self.elapsed_time
+
+
+
+
+
+
 
 
 
@@ -103,7 +127,7 @@ class TrainRecorder:
 # --------------- Function --- training
 # ------------------------------------------------------------
 
-def show_progress(now, total, loss=None, accuracy=None):
+def show_progress(now, total, loss=None, accuracy=None, time_manager=None):
 	"""
 	A function that displays a progress bar.
 
@@ -111,21 +135,33 @@ def show_progress(now, total, loss=None, accuracy=None):
 		now (): the current epoch (start from zero)
 		total (): the total epoch (EPOCH)
 		loss (): current loss value; if it's None, it will not be display.
-		accuracy (): currenct accuracy; if it's None, it will not be display.
+		accuracy (): current accuracy; if it's None, it will not be display.
+		time_manager (): for showing the training time process
 
 	Returns: None
 	"""
 	now += 1  # remap 0 -> 1
 	FINISH, UNFINISH = '█', ' '
-	N = 30  # the length
+	N = 20  # the length
 	PERCENT = now / total
 
-	# main operation
+	# for showing blocks
 	finish = int(PERCENT * N) * FINISH
 	unfinish = (N - len(finish)) * UNFINISH
 	show = f"|{finish}{unfinish}| {PERCENT:.2%}"
-	if loss is not None: show += f"  loss: {loss:.4f}"
-	if accuracy is not None: show += f"  accuracy: {accuracy:.2%}"
+
+	if time_manager:  # for showing time process:
+		average_time, elapsed_time = time_manager.get_average_time(), time_manager.get_elapsed_time()
+		total_time = total * average_time
+
+		average_time = Fau.time_to_human(average_time)
+		elapsed_time = Fau.time_to_human(elapsed_time)
+		total_time = Fau.time_to_human(total_time)
+
+		show += f" [{elapsed_time}<{total_time}, {average_time}]"
+
+	if loss: show += f"  loss: {loss:.4f}"
+	if accuracy: show += f"  accuracy: {accuracy:.2%}"
 
 	print(show)
 
@@ -208,6 +244,9 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 	# begin training
 	model = model.to(DEVICE); model.train()  # initialization
 
+	# for showing training process
+	time_manager = TimeManager()
+
 	for epoch in range(EPOCH):
 		for step, (train_x, train_y) in enumerate(train_loader):
 			train_x, train_y = train_x.to(DEVICE), train_y.to(DEVICE)
@@ -219,8 +258,10 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 			optimizer.step()
 
 		# end of epoch
+		time_manager.time_tick()
+		# noinspection PyUnboundLocalVariable
 		loss_value, accuracy = loss.item(), calc_accuracy(model, test_loader)  # get loss and acc
-		show_progress(epoch, EPOCH, loss_value, accuracy)
+		show_progress(epoch, EPOCH, loss_value, accuracy, time_manager)
 		# update and record
 		model_manager.update(model, loss_value, accuracy)
 		train_recorder.update(loss_value, accuracy)
@@ -232,10 +273,9 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 	model_manager.save(name)
 	train_recorder.save(f"{name}_{model_manager.get_postfix()}")
 
-	if save_parameters:
+	if save_parameters:  # save the parameters
 		parameters_filename = f"{name}_{model_manager.get_postfix()}.txt"
 		with open(parameters_filename, "w") as file:
-			# optimizer.__doc__
 			file.write(f"optimizer: \n{str(optimizer)}\n")
 			file.write(f"{'-' * 20}\n")
 			file.write(f"loss function: \n{str(loss_function)}")

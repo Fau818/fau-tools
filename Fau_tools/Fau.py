@@ -16,6 +16,28 @@ def calc_time(function):
 
 
 
+def time_to_human(time):
+	"""
+	the function is to convert time in seconds to the human-friendly time display.
+
+	Args:
+		time (): the time
+
+	Returns:
+		a string in the format HH:mm:ss
+		but if the time is more than one day, will return "MTOD"
+
+	"""
+	time = int(time)
+	second = time % 60; time //= 60
+	minute = time % 60; time //= 60
+	hour = time
+
+	if hour >= 24: return "MTOD"  # more than one day
+
+	if hour > 0: return f"{hour:02d}:{minute:02d}:{second:02d}"
+	if minute > 0: return f"{minute:02d}:{second:02d}"
+	if second > 0: return f"{second:02d}s"
 
 
 
