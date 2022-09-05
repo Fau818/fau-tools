@@ -98,18 +98,18 @@ class TrainRecorder:
 
 class TimeManager:
 	def __init__(self):
-		self.TIME = time.time()
-		self.time_list = [0]
+		self.time_list = [time.time()]
 		self.elapsed_time = 0
 
 	def time_tick(self):
-		cur_time = time.time() - self.TIME
+		cur_time = time.time()
+		self.elapsed_time += cur_time - self.time_list[-1]
 		self.time_list.append(cur_time)
-		self.elapsed_time += cur_time
 
 	def get_average_time(self): return self.elapsed_time / (len(self.time_list) - 1)  # interval: len - 1
 
 	def get_elapsed_time(self): return self.elapsed_time
+
 
 
 

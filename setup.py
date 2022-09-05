@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
 	name="Fau_tools",
-	version="0.0.8",
+	version="0.1.1",
 	author="Fau",
 	author_email="Fau818@qq.com",
 	url="https://github.com/Fau818/Fau_tools",

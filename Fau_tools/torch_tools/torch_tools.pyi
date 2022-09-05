@@ -34,7 +34,6 @@ class TrainRecorder:
 
 class TimeManager:
 	def __init__(self):
-		self.TIME: float = ...
 		self.time_list: list = ...
 		self.elapsed_time: float = 0
 
