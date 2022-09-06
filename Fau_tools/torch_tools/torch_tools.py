@@ -181,16 +181,17 @@ def calc_accuracy(model, test_loader, DEVICE=None):
 
 	model.eval()  # no dropout...
 
-	test_result = list()  # for calculating the average accuracy rate.
-	for (test_x, test_y) in test_loader:
-		test_x, test_y = test_x.to(DEVICE), test_y.to(DEVICE)
-		test_output: torch.Tensor = model(test_x)
-		test_prediction: torch.Tensor = test_output.argmax(1)  # get classification result set
-		cur_accuracy: torch.Tensor = sum(test_prediction.eq(test_y)) / test_y.size(0)
-		test_result.append(cur_accuracy.item())  # tensor -> scaler
+	with torch.no_grad():
+		test_result = list()  # for calculating the average accuracy rate.
+		for (test_x, test_y) in test_loader:
+			test_x, test_y = test_x.to(DEVICE), test_y.to(DEVICE)
+			test_output: torch.Tensor = model(test_x)
+			test_prediction: torch.Tensor = test_output.argmax(1)  # get classification result set
+			cur_accuracy: torch.Tensor = sum(test_prediction.eq(test_y)) / test_y.size(0)
+			test_result.append(cur_accuracy.item())  # tensor -> scaler
+		accuracy: float = sum(test_result) / len(test_result)  # get average accuracy
 
 	model.train()  # recover
-	accuracy: float = sum(test_result) / len(test_result)  # get average
 	return round(accuracy, 6)
 
 
@@ -208,7 +209,7 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 		loss_function (): loss function
 		EPOCH (): total EPOCH
 		name (): if the model need to be saved, please pass the model name without postfix.
-		save_parameters (): whether the optimizer and the loss function need to be saved.
+		save_parameters (): whether the optimizer and the loss function need to be saved. name () is must.
 		DEVICE (): cpu or cuda; if it's None, it will judge for itself.
 
 	Returns: None
@@ -257,10 +258,12 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 			optimizer.step()
 
 		# end of epoch
-		time_manager.time_tick()
 		# noinspection PyUnboundLocalVariable
 		loss_value, accuracy = loss.item(), calc_accuracy(model, test_loader)  # get loss and acc
 		show_progress(epoch, EPOCH, loss_value, accuracy, time_manager)
+
+		time_manager.time_tick()  # tick current time
+
 		# update and record
 		model_manager.update(model, loss_value, accuracy)
 		train_recorder.update(loss_value, accuracy)
