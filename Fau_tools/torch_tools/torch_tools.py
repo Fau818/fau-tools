@@ -260,9 +260,8 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 		# end of epoch
 		# noinspection PyUnboundLocalVariable
 		loss_value, accuracy = loss.item(), calc_accuracy(model, test_loader)  # get loss and acc
-		show_progress(epoch, EPOCH, loss_value, accuracy, time_manager)
-
 		time_manager.time_tick()  # tick current time
+		show_progress(epoch, EPOCH, loss_value, accuracy, time_manager)
 
 		# update and record
 		model_manager.update(model, loss_value, accuracy)
