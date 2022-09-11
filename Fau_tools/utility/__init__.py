@@ -1,4 +1,4 @@
-import torch
+import numpy as np
 
 
 def calc_time(function):
@@ -41,6 +41,15 @@ def time_to_human(time):
 
 
 
+class ActivationFunction:
+	@staticmethod
+	def sigmoid(x): return 1 / (1 + np.exp(-x))
+
+	@staticmethod
+	def tanh(x): return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
+
+	@staticmethod
+	def relu(x): return np.maximum(x, 0)
 
 
 

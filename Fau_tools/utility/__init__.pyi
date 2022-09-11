@@ -1,0 +1,16 @@
+def calc_time(function) -> None: ...
+
+
+def time_to_human(time: float|int) -> str: ...
+
+
+
+class ActivationFunction:
+	@staticmethod
+	def sigmoid(x: float) -> float: ...
+
+	@staticmethod
+	def tanh(x: float) -> float: ...
+
+	@staticmethod
+	def relu(x: float) -> float: ...
