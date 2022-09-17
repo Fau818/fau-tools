@@ -76,7 +76,8 @@ class ModelManager:
 		"""
 
 		if DEVICE is None: DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-		model.load_state_dict(torch.load(file_path, map_location=DEVICE))
+		model.load_state_dict(torch.load(file_path))
+		model.to(DEVICE)
 
 	def get_postfix(self): return f"{round(self.accuracy * 10000)}"  # 87.65%  ->  8765
 
