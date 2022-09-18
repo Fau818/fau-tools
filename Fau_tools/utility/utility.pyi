@@ -1,8 +1,6 @@
-def calc_time(function) -> None: ...
-
-
 def time_to_human(time: float|int) -> str: ...
 
+def calc_time(function) -> None: ...
 
 
 class ActivationFunction:

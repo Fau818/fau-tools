@@ -1,21 +1,6 @@
 import numpy as np
 
 
-def calc_time(function):
-	def wrapper(*args, **kwargs):
-		print('-' * 15, "BEGIN", function.__name__, '-' * 15)
-		import time
-		BEGIN = time.time()
-		res = function(*args, **kwargs)
-		END = time.time()
-		print(f"{function.__name__} cost: {END - BEGIN:.6f}s")
-		print('-' * 15, " END ", function.__name__, '-' * 15)
-		return res
-
-	return wrapper
-
-
-
 def time_to_human(time):
 	"""
 	the function is to convert time in seconds to the human-friendly time display.
@@ -38,6 +23,25 @@ def time_to_human(time):
 	if hour > 0: return f"{hour:02d}:{minute:02d}:{second:02d}"
 	if minute > 0: return f"{minute:02d}:{second:02d}"
 	if second > 0: return f"{second:02d}s"
+
+
+
+def calc_time(function):
+	def wrapper(*args, **kwargs):
+		print('-' * 15, "BEGIN", function.__name__, '-' * 15)
+		import time
+		BEGIN = time.time()
+		res = function(*args, **kwargs)
+		END = time.time()
+		COST_TIME = time_to_human(END - BEGIN)
+		print(f"{function.__name__} cost: {COST_TIME}")
+		print('-' * 15, " END ", function.__name__, '-' * 15)
+		return res
+
+	return wrapper
+
+
+
 
 
 
