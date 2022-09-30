@@ -313,6 +313,7 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 			file.write(f"loss function: \n{str(loss_function)}\n")
 			file.write(f"{'-' * 20}\n")
 			file.write(f"batch size: {train_loader.batch_size}\n")
+			file.write(f"epoch: {EPOCH}\n")
 		if SAVE_NOTICE: print(f"{torch_train.__name__}: save a parameter file named {parameters_filename} successfully!")
 
 
