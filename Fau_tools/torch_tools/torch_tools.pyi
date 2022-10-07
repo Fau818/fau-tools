@@ -65,7 +65,7 @@ def calc_accuracy(model: nn.Module, test_loader: tdata.DataLoader, DEVICE: torch
 
 def torch_train(model: nn.Module, train_loader: tdata.DataLoader, test_loader: tdata.DataLoader,
                 optimizer: torch.optim.Optimizer, loss_function: nn.Module, EPOCH: int=100,
-				name: str=None, save_parameters: bool=False, DEVICE: torch.device=None) -> None: ...
+				name: str=None, save_model: bool=True, DEVICE: torch.device=None) -> None: ...
 
 
 

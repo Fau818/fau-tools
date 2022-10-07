@@ -224,7 +224,7 @@ def calc_accuracy(model, test_loader, DEVICE=None):
 
 
 @utility.calc_time
-def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOCH=100, name=None, save_parameters=False, DEVICE=None):
+def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOCH=100, name=None, save_model=True, DEVICE=None):
 	"""
 	A function for training the best model.
 
@@ -235,9 +235,9 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 		optimizer (): optimizer function
 		loss_function (): loss function
 		EPOCH (): total EPOCH
-		name (): if the model need to be saved, please pass the model name without postfix.
-		save_parameters (): whether the optimizer and the loss function need to be saved. name () is must.
-		DEVICE (): cpu or cuda; if it's None, it will judge for itself.
+		name (): if the training information need to be saved, please pass the file name without postfix.
+		save_model (): whether the trained model need to be saved; if needed please ensure the name parameter is not None.
+		DEVICE (): cpu or cuda; if it's None, it will judge by itself.
 
 	Returns: None
 
@@ -267,7 +267,7 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 		print("Warning: you shouldn't set the batch_size to 1. since if the NN uses BN, it will arise an error.")
 
 	# for saving training data
-	model_manager = ModelManager()
+	model_manager = ModelManager() if save_model else None
 	train_recorder = TrainRecorder()
 
 	# begin training
@@ -293,7 +293,7 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 		_show_progress(epoch, EPOCH, loss_value, accuracy, time_manager)
 
 		# update and record
-		model_manager.update(model, loss_value, accuracy)
+		if model_manager is not None: model_manager.update(model, loss_value, accuracy)
 		train_recorder.update(loss_value, accuracy)
 
 
@@ -301,20 +301,19 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 
 	# save model and process
 	SAVE_NAME = f"{name}_{model_manager.get_postfix()}"
-	model_manager.save(SAVE_NAME)
+	if save_model: model_manager.save(SAVE_NAME)
 	train_recorder.save(SAVE_NAME)
 
-
-	if save_parameters:  # save the parameters
-		parameters_filename = f"{SAVE_NAME}.txt"
-		with open(parameters_filename, "w") as file:
-			file.write(f"optimizer: \n{str(optimizer)}\n")
-			file.write(f"{'-' * 20}\n")
-			file.write(f"loss function: \n{str(loss_function)}\n")
-			file.write(f"{'-' * 20}\n")
-			file.write(f"batch size: {train_loader.batch_size}\n")
-			file.write(f"epoch: {EPOCH}\n")
-		if SAVE_NOTICE: print(f"{torch_train.__name__}: save a parameter file named {parameters_filename} successfully!")
+	# save the parameters
+	parameters_filename = f"{SAVE_NAME}.txt"
+	with open(parameters_filename, "w") as file:
+		file.write(f"optimizer: \n{str(optimizer)}\n")
+		file.write(f"{'-' * 20}\n")
+		file.write(f"loss function: \n{str(loss_function)}\n")
+		file.write(f"{'-' * 20}\n")
+		file.write(f"batch size: {train_loader.batch_size}\n")
+		file.write(f"epoch: {EPOCH}\n")
+	if SAVE_NOTICE: print(f"{torch_train.__name__}: save a parameter file named {parameters_filename} successfully!")
 
 
 
