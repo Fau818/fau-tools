@@ -267,7 +267,7 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 		print("Warning: you shouldn't set the batch_size to 1. since if the NN uses BN, it will arise an error.")
 
 	# for saving training data
-	model_manager = ModelManager() if save_model else None
+	model_manager = ModelManager()
 	train_recorder = TrainRecorder()
 
 	# begin training
@@ -293,7 +293,7 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 		_show_progress(epoch, EPOCH, loss_value, accuracy, time_manager)
 
 		# update and record
-		if model_manager is not None: model_manager.update(model, loss_value, accuracy)
+		model_manager.update(model, loss_value, accuracy)
 		train_recorder.update(loss_value, accuracy)
 
 
