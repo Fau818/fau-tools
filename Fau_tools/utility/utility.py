@@ -24,6 +24,8 @@ def time_to_human(time):
 	if minute > 0: return f"{minute:02d}:{second:02d}"
 	if second > 0: return f"{second:02d}s"
 
+	return "minor"
+
 
 
 def calc_time(function):
