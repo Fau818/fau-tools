@@ -1,6 +1,27 @@
 import numpy as np
 
+# ------------------------------------------------------------
+# --------------- a decorator can show function running time
+# ------------------------------------------------------------
+def calc_time(function):
+	def wrapper(*args, **kwargs):
+		print('-' * 15, "BEGIN", function.__name__, '-' * 15)
+		import time
+		BEGIN = time.time()
+		res = function(*args, **kwargs)
+		END = time.time()
+		COST_TIME = time_to_human(END - BEGIN)
+		print(f"{function.__name__} cost: {COST_TIME}")
+		print('-' * 15, " END ", function.__name__, '-' * 15)
+		return res
 
+	return wrapper
+
+
+
+# ----------------------------------------------------------------------
+# --------------- a function can convert time to human-friendly display
+# ----------------------------------------------------------------------
 def time_to_human(time):
 	"""
 	the function is to convert time in seconds to the human-friendly time display.
@@ -28,25 +49,43 @@ def time_to_human(time):
 
 
 
-def calc_time(function):
-	def wrapper(*args, **kwargs):
-		print('-' * 15, "BEGIN", function.__name__, '-' * 15)
-		import time
-		BEGIN = time.time()
-		res = function(*args, **kwargs)
-		END = time.time()
-		COST_TIME = time_to_human(END - BEGIN)
-		print(f"{function.__name__} cost: {COST_TIME}")
-		print('-' * 15, " END ", function.__name__, '-' * 15)
-		return res
+# ------------------------------------------------------------
+# --------------- color print function
+# ------------------------------------------------------------
+__COLOR_DICT = {
+	'black'      : "\033[30m", 'b' : "\033[30m",
+	'gray'       : "\033[90m",
+	'red'        : "\033[91m", 'r' : "\033[91m",
+	'green'      : "\033[92m", 'g' : "\033[92m",  # default
+	'yellow'     : "\033[93m", 'y' : "\033[93m",
+	'lightpurple': "\033[94m", 'lp': "\033[94m",
+	'purple'     : "\033[95m", 'p' : "\033[95m",
+	'lightblue'  : "\033[96m", 'lb': "\033[96m",
+	'bluepurple' : "\033[34m", 'bp': "\033[34m",
+}
 
-	return wrapper
+def cprint(text, color='green', sep='\n'):
+	"""
+
+	Args:
+		text (): the content needs to be printed
+		color (): a string representing color; all legal values shown in `__COLOR_DICT`
+		sep (): a kwarg in `print()` function
+
+	Returns: None
+
+	"""
+
+	HEAD, TAIL = "\033[92m", "\033[m"
+	if color in __COLOR_DICT: HEAD = __COLOR_DICT[color]
+
+	print(f"{HEAD}{text}{TAIL}", sep=sep)
 
 
 
-
-
-
+# ------------------------------------------------------------
+# --------------- activation function definition
+# ------------------------------------------------------------
 class ActivationFunction:
 	@staticmethod
 	def sigmoid(x): return 1 / (1 + np.exp(-x))
@@ -67,7 +106,46 @@ class ActivationFunction:
 
 
 
-
+# ------------------------------------------------------------
+# --------------- a function can show process bar (deprecated)
+# ------------------------------------------------------------
+# def show_progress(now, total, time_manager=None, length=30, icons='█ '):
+# 	"""
+# 	A function that displays a progress bar.
+#
+# 	Args:
+# 		now (): current process
+# 		total (): total process
+# 		time_manager (): for showing the running time and predicting the end time;
+# 			it should be an instance of `TimeManager` class.
+# 		length (): the length of process bar
+# 		icons (): the process icons; a string contained only two char is necessary;
+# 			the first char is the finished part icon, the second is unfinished.
+#
+#
+#
+# 	Returns: None
+# 	"""
+#
+# 	if len(icons) != 2: raise ValueError(f"the length of icons arg must be 2, but {len(icons)} is received.")
+#
+# 	finish_icon, unfinish_icon = icons
+# 	percent = now / total
+#
+# 	# for showing process bar
+# 	finish_bar = int(percent * length) * finish_icon
+# 	unfinish_bar = (length - len(finish_bar)) * unfinish_icon
+# 	show = f"|{finish_bar}{unfinish_bar}| [{now}/{total}] {percent:.2%}"
+#
+# 	if time_manager:  # for showing time process:
+# 		average_time, elapsed_time = time_manager.get_average_time(), time_manager.get_elapsed_time()
+# 		total_time = total * average_time
+#
+# 		elapsed_time = time_to_human(elapsed_time)
+# 		total_time = time_to_human(total_time)
+# 		show += f" [{elapsed_time}<{total_time}]"
+#
+# 	print(show)
 
 
 # ----------------------------------------------------------------------------------------------------
