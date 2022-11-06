@@ -186,7 +186,7 @@ def _show_progress(now, total, loss=None, accuracy=None, time_manager=None):
 
 		show += f" [{elapsed_time}<{total_time}]"
 
-	if loss: show += f"  loss: {loss:.4f}"
+	if loss: show += f"  loss: {loss:.6f}"
 	if accuracy: show += f"  accuracy: {accuracy:.2%}"
 
 	print(show)

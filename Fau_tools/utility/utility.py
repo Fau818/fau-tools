@@ -55,8 +55,8 @@ def time_to_human(time):
 __COLOR_DICT = {
 	'black'      : "\033[30m", 'b' : "\033[30m",
 	'gray'       : "\033[90m",
-	'red'        : "\033[91m", 'r' : "\033[91m",
-	'green'      : "\033[92m", 'g' : "\033[92m",  # default
+	'red'        : "\033[91m", 'r' : "\033[91m",  # default
+	'green'      : "\033[92m", 'g' : "\033[92m",
 	'yellow'     : "\033[93m", 'y' : "\033[93m",
 	'lightpurple': "\033[94m", 'lp': "\033[94m",
 	'purple'     : "\033[95m", 'p' : "\033[95m",
@@ -64,7 +64,7 @@ __COLOR_DICT = {
 	'bluepurple' : "\033[34m", 'bp': "\033[34m",
 }
 
-def cprint(text, color='green', sep='\n'):
+def cprint(text, color='red', sep='\n'):
 	"""
 
 	Args:
@@ -106,9 +106,9 @@ class ActivationFunction:
 
 
 
-# ------------------------------------------------------------
-# --------------- a function can show process bar (deprecated)
-# ------------------------------------------------------------
+# # ------------------------------------------------------------
+# # --------------- a function can show process bar (deprecated)
+# # ------------------------------------------------------------
 # def show_progress(now, total, time_manager=None, length=30, icons='█ '):
 # 	"""
 # 	A function that displays a progress bar.
@@ -135,7 +135,7 @@ class ActivationFunction:
 # 	# for showing process bar
 # 	finish_bar = int(percent * length) * finish_icon
 # 	unfinish_bar = (length - len(finish_bar)) * unfinish_icon
-# 	show = f"|{finish_bar}{unfinish_bar}| [{now}/{total}] {percent:.2%}"
+# 	show = f"|{finish_bar}{unfinish_bar}|"
 #
 # 	if time_manager:  # for showing time process:
 # 		average_time, elapsed_time = time_manager.get_average_time(), time_manager.get_elapsed_time()
@@ -143,9 +143,9 @@ class ActivationFunction:
 #
 # 		elapsed_time = time_to_human(elapsed_time)
 # 		total_time = time_to_human(total_time)
-# 		show += f" [{elapsed_time}<{total_time}]"
+# 		show += f" [{now}/{total}, {elapsed_time}<{total_time}]"
 #
-# 	print(show)
+# 	print(f"\r{show}", end="")
 
 
 # ----------------------------------------------------------------------------------------------------
