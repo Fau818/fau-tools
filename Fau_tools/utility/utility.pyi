@@ -1,4 +1,3 @@
-from Fau_tools.torch_tools import TimeManager
 
 
 def calc_time(function) -> None: ...
