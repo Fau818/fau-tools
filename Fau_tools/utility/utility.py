@@ -1,4 +1,6 @@
 import numpy as np
+import time
+
 
 # ------------------------------------------------------------
 # --------------- a decorator can show function running time
@@ -6,7 +8,6 @@ import numpy as np
 def calc_time(function):
 	def wrapper(*args, **kwargs):
 		print('-' * 15, "BEGIN", function.__name__, '-' * 15)
-		import time
 		BEGIN = time.time()
 		res = function(*args, **kwargs)
 		END = time.time()
@@ -15,6 +16,7 @@ def calc_time(function):
 		print('-' * 15, " END ", function.__name__, '-' * 15)
 		return res
 
+	wrapper.__name__ = function.__name__  # to keep the function origin name
 	return wrapper
 
 
