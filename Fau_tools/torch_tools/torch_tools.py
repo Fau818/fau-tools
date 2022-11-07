@@ -5,6 +5,7 @@ import torch
 import matplotlib.pyplot as plt
 
 from Fau_tools import utility
+from Fau_tools.utility import cprint
 
 
 # ------------------------------------------------------------
@@ -58,7 +59,7 @@ class ModelManager:
 		file_name = f"{file_name}.pth"
 		if only_param: torch.save(self.model.state_dict(), rf"{file_name}")
 		else: torch.save(self.model, rf"{file_name}")
-		if SAVE_NOTICE: print(rf"{__class__.__name__}: save a model named {file_name} successfully!")
+		if SAVE_NOTICE: cprint(rf"{__class__.__name__}: save a model named {file_name} successfully!", "green")
 
 	@staticmethod
 	def load(model, file_path, DEVICE=None):
@@ -118,7 +119,7 @@ class TrainRecorder:
 				line = f"{loss:.4f}, {accuracy:.4f}\n"
 				file.write(line)
 
-		if SAVE_NOTICE: print(rf"{__class__.__name__}: save a record file named {file_name} successfully!")
+		if SAVE_NOTICE: cprint(rf"{__class__.__name__}: save a record file named {file_name} successfully!", "green")
 
 
 
@@ -184,10 +185,10 @@ def _show_progress(now, total, loss=None, accuracy=None, time_manager=None):
 		elapsed_time = utility.time_to_human(elapsed_time)
 		total_time = utility.time_to_human(total_time)
 
-		show += f" [{elapsed_time}<{total_time}]"
+		show += cprint(f"  [{elapsed_time}<{total_time}]", "cyan", ret=True)
 
-	if loss: show += f"  loss: {loss:.6f}"
-	if accuracy: show += f"  accuracy: {accuracy:.2%}"
+	if loss: show += cprint(f"  loss: {loss:.6f}", "red", ret=True)
+	if accuracy: show += cprint(f"  accuracy: {accuracy:.2%}", "green", ret=True)
 
 	print(show)
 
@@ -255,16 +256,16 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 			DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 			DEVICE_NAME = "CPU" if DEVICE == "cpu" else torch.cuda.get_device_name(0)
 		except AssertionError:
-			print("No cuda detected.")
+			cprint("No cuda detected.", "yellow")
 			DEVICE, DEVICE_NAME = "cpu", "CPU"
 		except Exception:
-			print("Unknown error.")
+			cprint("Unknown error.", "red")
 			DEVICE, DEVICE_NAME = "cpu", "CPU"
 		finally:
-			print(f"{'='*10} Training in {DEVICE_NAME} {'='*10}")
+			cprint(f"{'='*10} Training in {DEVICE_NAME} {'='*10}", "green")
 
 	if train_loader.batch_size == 1:
-		print("Warning: you shouldn't set the batch_size to 1. since if the NN uses BN, it will arise an error.")
+		cprint("Warning: you shouldn't set the batch_size to 1. since if the NN uses BN, it will arise an error.", "red")
 
 	# for saving training data
 	model_manager = ModelManager()
@@ -313,7 +314,17 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 		file.write(f"{'-' * 20}\n")
 		file.write(f"batch size: {train_loader.batch_size}\n")
 		file.write(f"epoch: {EPOCH}\n")
-	if SAVE_NOTICE: print(f"{torch_train.__name__}: save a parameter file named {parameters_filename} successfully!")
+		file.write(f"{'-' * 20}\n")
+		try:  # for saving the number of train and test data
+			train_data_num = len(train_loader.batch_sampler.sampler.data_source.labels)
+			test_data_num = len(test_loader.batch_sampler.sampler.data_source.labels)
+		except AttributeError: cprint("Saving the number of train and test data error.", "red")
+		else:
+			file.write(f"train_data_number: {train_data_num}\n")
+			file.write(f"test_data_number: {test_data_num}\n")
+
+
+	if SAVE_NOTICE: cprint(f"{torch_train.__name__}: save a parameter file named {parameters_filename} successfully!", "green")
 
 
 

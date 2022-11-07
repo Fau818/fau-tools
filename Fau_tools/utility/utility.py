@@ -53,33 +53,35 @@ def time_to_human(time):
 # --------------- color print function
 # ------------------------------------------------------------
 __COLOR_DICT = {
-	'black'      : "\033[30m", 'b' : "\033[30m",
-	'gray'       : "\033[90m",
-	'red'        : "\033[91m", 'r' : "\033[91m",  # default
-	'green'      : "\033[92m", 'g' : "\033[92m",
-	'yellow'     : "\033[93m", 'y' : "\033[93m",
-	'lightpurple': "\033[94m", 'lp': "\033[94m",
-	'purple'     : "\033[95m", 'p' : "\033[95m",
-	'lightblue'  : "\033[96m", 'lb': "\033[96m",
-	'bluepurple' : "\033[34m", 'bp': "\033[34m",
+	'black' : "\033[90m", "B": "\033[90m",
+	'red'   : "\033[91m", 'r': "\033[91m",  # default
+	'green' : "\033[92m", 'g': "\033[92m",
+	'yellow': "\033[93m", 'y': "\033[93m",
+	'blue'  : "\033[94m", 'b': "\033[94m",
+	'purple': "\033[95m", 'p': "\033[95m",
+	'cyan'  : "\033[96m", 'c': "\033[96m",
+	'white' : "\033[97m", 'w': "\033[97m",
 }
 
-def cprint(text, color='red', sep='\n'):
+def cprint(text, color='red', sep='\n', ret=False):
 	"""
 
 	Args:
 		text (): the content needs to be printed
 		color (): a string representing color; all legal values shown in `__COLOR_DICT`
 		sep (): a kwarg in `print()` function
+		ret (): if True, the colorful string will not be print, but will be returned.
 
 	Returns: None
 
 	"""
 
-	HEAD, TAIL = "\033[92m", "\033[m"
+	HEAD, TAIL = "\033[91m", "\033[0m"
 	if color in __COLOR_DICT: HEAD = __COLOR_DICT[color]
 
-	print(f"{HEAD}{text}{TAIL}", sep=sep)
+	color_string = f"{HEAD}{text}{TAIL}"
+	if not ret: print(color_string, sep=sep)
+	else: return color_string
 
 
 
