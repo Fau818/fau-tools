@@ -167,12 +167,12 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 		file.write(f"{'-' * 20}\n")
 		file.write(f"batch size: {train_loader.batch_size}\n")
 		file.write(f"epoch: {EPOCH}\n")
-		file.write(f"{'-' * 20}\n")
 		try:  # for saving the number of train and test data
 			train_data_num = len(train_loader.batch_sampler.sampler.data_source.labels)
 			test_data_num = len(test_loader.batch_sampler.sampler.data_source.labels)
 		except AttributeError: cprint("Saving the number of train and test data error.", "red")
 		else:
+			file.write(f"{'-' * 20}\n")
 			file.write(f"train_data_number: {train_data_num}\n")
 			file.write(f"test_data_number: {test_data_num}\n")
 
