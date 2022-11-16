@@ -1,6 +1,9 @@
 import numpy as np
 import time
 
+import torch
+from torch import nn
+
 
 # ------------------------------------------------------------
 # --------------- a decorator can show function running time
@@ -84,6 +87,59 @@ def cprint(text, color='red', sep='\n', ret=False):
 	color_string = f"{HEAD}{text}{TAIL}"
 	if not ret: print(color_string, sep=sep)
 	else: return color_string
+
+
+
+
+# ------------------------------------------------------------
+# --------------- auto calculate feature size
+# ------------------------------------------------------------
+def __get_value_in_height_and_width(value, value_name):
+	if isinstance(value, tuple): return value
+	if isinstance(value, int): return value, value
+
+	raise TypeError(f"The type of {value_name} requires int|tuple, but got {type(value)}.")
+
+
+def _calc_value_after_layer(x, k_size, stride, padding): return (x - k_size + 2 * padding) // stride + 1
+
+
+def calc_feature_size(channel, height, width, sequential):
+	CONV, POOL = "torch.nn.modules.conv", "torch.nn.modules.pooling"
+	for op in sequential:
+		if op.__module__ == CONV:
+			# get basic parameters
+			in_channel, out_channel = op.in_channels, op.out_channels
+			k_size, stride, padding,  = op.kernel_size, op.stride, op.padding
+
+			# illegal channel
+			if in_channel != channel: raise ValueError(f"Got {channel=}, but {in_channel=} in Conv2d.")
+
+			# get values in height and width
+			k_size_h, k_size_w = __get_value_in_height_and_width(k_size, "kernel_size")
+			stride_h, stride_w = __get_value_in_height_and_width(stride, "stride")
+			padding_h, padding_w = __get_value_in_height_and_width(padding, "padding")
+
+			# calculate
+			channel = out_channel
+			height = _calc_value_after_layer(height, k_size_h, stride_h, padding_h)
+			width = _calc_value_after_layer(width, k_size_w, stride_w, padding_w)
+		elif op.__module__ == POOL:
+			k_size, stride, padding = op.kernel_size, op.stride, op.padding
+
+			# get values in height and width
+			k_size_h, k_size_w = __get_value_in_height_and_width(k_size, "kernel_size")
+			stride_h, stride_w = __get_value_in_height_and_width(stride, "stride")
+			padding_h, padding_w = __get_value_in_height_and_width(padding, "padding")
+
+			height = _calc_value_after_layer(height, k_size_h, stride_h, padding_h)
+			width = _calc_value_after_layer(width, k_size_w, stride_w, padding_w)
+
+	return channel * height * width
+
+
+
+
 
 
 
