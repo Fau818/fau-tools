@@ -100,7 +100,7 @@ class TrainRecorder:
 			col_list = ", ".join(("loss", "accuracy")) + "\n"
 			file.write(col_list)
 			for loss, accuracy in zip(self.loss_list, self.accuracy_list):
-				line = f"{loss:.4f}, {accuracy:.4f}\n"
+				line = f"{loss:.6f}, {accuracy:.4f}\n"
 				file.write(line)
 
 		cprint(rf"{__class__.__name__}: save a record file named {file_name} successfully!", "green")
