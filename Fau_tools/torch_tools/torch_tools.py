@@ -8,7 +8,11 @@ from Fau_tools.utility import cprint
 
 
 
-def _show_progress(now, total, loss=None, accuracy=None, time_manager=None):
+# ------------------------------------------------------------
+# --------------- Function --- training
+# ------------------------------------------------------------
+
+def __show_progress(now, total, loss=None, accuracy=None, time_manager=None):
 	"""
 	A function that displays a progress bar.
 
@@ -144,7 +148,7 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 		# noinspection PyUnboundLocalVariable
 		loss_value, accuracy = loss.item(), calc_accuracy(model, test_loader, DEVICE)  # get loss and acc
 		time_manager.time_tick()  # tick current time
-		_show_progress(epoch, EPOCH, loss_value, accuracy, time_manager)
+		__show_progress(epoch, EPOCH, loss_value, accuracy, time_manager)
 
 		# update and record
 		model_manager.update(model, loss_value, accuracy)
@@ -178,9 +182,6 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 
 
 	cprint(f"{torch_train.__name__}: save a parameter file named {parameters_filename} successfully!", "green")
-
-
-
 
 
 
@@ -238,4 +239,15 @@ def draw_plot(*args, legend_names=None, x_name=None, y_name=None, percent=False)
 		y_ticks_percent = [f"{op:.2%}" for op in y_ticks]  # convert to percent
 		plt.yticks(y_ticks, y_ticks_percent)
 
-# plt.show()  # Note: This will lead to show the figure one by one.
+	# plt.show()  # Note: This will lead to show the figure one by one.
+
+
+
+
+# ------------------------------------------------------------
+# --------------- Function --- Loading model
+# ------------------------------------------------------------
+
+def load_model(model, file_path, DEVICE=None):
+	""" See ModelManager.load function in data_structure module. """
+	ModelManager.load(model, file_path, DEVICE)
