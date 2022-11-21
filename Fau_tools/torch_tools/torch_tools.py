@@ -1,6 +1,7 @@
 import pandas as pd
 import torch
 import matplotlib.pyplot as plt
+from matplotlib import ticker
 
 from Fau_tools import utility
 from Fau_tools.data_structure import ModelManager, TimeManager, TrainRecorder
@@ -235,9 +236,7 @@ def draw_plot(*args, legend_names=None, x_name=None, y_name=None, percent=False)
 	if y_name is not None: plt.ylabel(y_name)
 	if percent:
 		plt.ylim(0, 1)
-		y_ticks = plt.yticks()[0]  # get y_ticks
-		y_ticks_percent = [f"{op:.2%}" for op in y_ticks]  # convert to percent
-		plt.yticks(y_ticks, y_ticks_percent)
+		plt.gca().yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=1))
 
 	# plt.show()  # Note: This will lead to show the figure one by one.
 
