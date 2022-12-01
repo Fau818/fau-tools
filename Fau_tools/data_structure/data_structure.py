@@ -50,7 +50,7 @@ class ModelManager:
 		"""
 		load the trained model that saved only parameters.
 
-		A new feature add in version 1.0.0  [test]
+		A new feature add in version 1.0.0  [TEST]
 
 		Args:
 			model (): load to which one
@@ -61,8 +61,9 @@ class ModelManager:
 		"""
 
 		if DEVICE is None: DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-		model.load_state_dict(torch.load(file_path))
-		model.to(DEVICE)
+		model.load_state_dict(torch.load(file_path, DEVICE))
+		model.eval()  # [TEST]
+
 
 	def get_postfix(self): return f"{round(self.accuracy * 10000)}"  # 87.65%  ->  8765
 
