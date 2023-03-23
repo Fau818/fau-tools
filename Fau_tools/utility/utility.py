@@ -110,7 +110,7 @@ def calc_feature_size(channel, height, width, sequential):
 		if op.__module__ == CONV:
 			# get basic parameters
 			in_channel, out_channel = op.in_channels, op.out_channels
-			k_size, stride, padding,  = op.kernel_size, op.stride, op.padding
+			k_size, stride, padding = op.kernel_size, op.stride, op.padding
 
 			# illegal channel
 			if in_channel != channel: raise ValueError(f"Got {channel=}, but {in_channel=} in Conv2d.")
