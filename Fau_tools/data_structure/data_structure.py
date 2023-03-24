@@ -78,8 +78,9 @@ class TrainRecorder:
 
   def __init__(self):
     self.loss_list, self.accuracy_list = list(), list()
+    self.precision_list, self.recall_list, self.f1_list = list(), list(), list()
 
-  def update(self, loss_value, accuracy):
+  def update(self, loss_value, accuracy, precision, recall, f1):
     """
     Update the training recorder.
 
@@ -91,6 +92,9 @@ class TrainRecorder:
     """
     self.loss_list.append(loss_value)
     self.accuracy_list.append(accuracy)
+    self.precision_list.append(precision)
+    self.recall_list.append(recall)
+    self.f1_list.append(f1)
 
   def save(self, file_name):
     """
@@ -107,10 +111,10 @@ class TrainRecorder:
     """
     file_name = rf"{file_name}.csv"
     with open(rf"{file_name}", "w") as file:
-      col_list = ", ".join(("loss", "accuracy")) + "\n"
+      col_list = ", ".join(("loss", "accuracy", "precision", "recall", "f1")) + "\n"
       file.write(col_list)
-      for loss, accuracy in zip(self.loss_list, self.accuracy_list):
-        line = f"{loss:.6f}, {accuracy:.6f}\n"
+      for loss, accuracy, precision, recall, f1 in zip(self.loss_list, self.accuracy_list, self.precision_list, self.recall_list, self.f1_list):
+        line = f"{loss:.6f}, {accuracy:.6f}, {precision:.6f}, {recall:.6f}, {f1:.6f}\n"
         file.write(line)
 
     cprint(rf"{__class__.__name__}: save a record file named {file_name} successfully!", "green")

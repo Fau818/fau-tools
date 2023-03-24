@@ -2,6 +2,7 @@ import pandas as pd
 import torch
 import matplotlib.pyplot as plt
 from matplotlib import ticker
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_curve
 
 from Fau_tools import utility
 from Fau_tools.data_structure import ModelManager, TimeManager, TrainRecorder
@@ -105,6 +106,57 @@ def calc_accuracy(model, test_loader, DEVICE=None):
 
 
 
+def calc_evaluation_indicators(model, test_loader, DEVICE=None):
+  """
+  Calculate the evaluation indicators in the test dataset.
+
+  Added in version 1.4.2
+
+  Parameters
+  ----------
+  model : the training model
+  test_loader : the test data loader
+  DEVICE : cpu or cuda; if None, will be judged automatically
+
+  Returns
+  -------
+  The (accuracy, precision, recall, f1) evaluation indicators
+  in the test dataset. (Round to 6 decimal places)
+
+  """
+  if DEVICE is None: DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+  model.eval()  # evaluation mode
+
+  with torch.no_grad():
+    accuracy_list, precision_list = list(), list()
+    recall_list, f1_list = list(), list()
+    for (test_features, test_labels) in test_loader:
+      test_features, test_labels = test_features.to(DEVICE), test_labels.to(DEVICE)
+      test_output: torch.Tensor = model(test_features)
+      test_prediction: torch.Tensor = test_output.argmax(1)  # get classification result set
+
+      cur_accuracy  = accuracy_score(test_labels, test_prediction)
+      cur_precision = precision_score(test_labels, test_prediction, average="macro", zero_division=0)
+      cur_recall    = recall_score(test_labels, test_prediction, average="macro", zero_division=0)
+      cur_f1        = f1_score(test_labels, test_prediction, average="macro", zero_division=0)
+
+      accuracy_list.append(cur_accuracy)
+      precision_list.append(cur_precision)
+      recall_list.append(cur_recall)
+      f1_list.append(cur_f1)
+
+    accuracy: float  = sum(accuracy_list) / len(accuracy_list)
+    precision: float = sum(precision_list) / len(precision_list)
+    recall: float    = sum(recall_list) / len(recall_list)
+    f1: float        = sum(f1_list) / len(f1_list)
+
+  model.train()  # recover
+  return round(accuracy, 6), round(precision, 6), round(recall, 6), round(f1, 6)
+
+
+
+
 @utility.calc_time
 def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOCH=100, early_stop=None, name=None, save_model=True, DEVICE=None):
   """
@@ -170,17 +222,17 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
       optimizer.step()
 
     # end of epoch
-    loss_value, accuracy = loss.item(), calc_accuracy(model, test_loader, DEVICE)  # get loss and acc
+    loss_value, (accuracy, precision, recall, f1) = loss.item(), calc_evaluation_indicators(model, test_loader)
     time_manager.time_tick()  # tick current time
     __show_progress(epoch, EPOCH, loss_value, accuracy, time_manager)
 
     # update and record
     model_manager.update(model, loss_value, accuracy, epoch)
-    train_recorder.update(loss_value, accuracy)
+    train_recorder.update(loss_value, accuracy, precision, recall, f1)
 
     # Judge early stop
     if early_stop is not None and __stop_training(epoch, model_manager, early_stop):
-      cprint("Early stop: The model has gone through {early_stop} epochs without being optimized.")
+      cprint("Early stop: The model has gone through {early_stop} epochs without being optimized.", "yellow")
       break
 
 

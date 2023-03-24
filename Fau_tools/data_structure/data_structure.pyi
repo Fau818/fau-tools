@@ -24,8 +24,11 @@ class TrainRecorder:
   def __init__(self):
     self.loss_list: list
     self.accuracy_list: list
+    self.precision_list: list
+    self.recall_list: list
+    self.f1_list: list
 
-  def update(self, loss_value: float, accuracy: float) -> None: ...
+  def update(self, loss_value: float, accuracy: float, precision: float, recall: float, f1: float) -> None: ...
 
   def save(self, file_name: str) -> None: ...
 
