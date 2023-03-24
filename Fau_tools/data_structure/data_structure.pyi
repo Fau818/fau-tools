@@ -7,8 +7,9 @@ class ModelManager:
     self.loss: float
     self.accuracy: float
     self.model: nn.Module
+    self.epoch: int
 
-  def update(self, model: nn.Module, loss: float, accuracy: float) -> None: ...
+  def update(self, model: nn.Module, loss: float, accuracy: float, epoch: int) -> None: ...
 
   def save(self, file_name: str, only_param: bool=True) -> None: ...
 

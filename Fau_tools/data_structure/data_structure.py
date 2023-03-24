@@ -10,8 +10,9 @@ class ModelManager:
   def __init__(self):
     self.loss, self.accuracy = None, None
     self.model = None
+    self.epoch = None
 
-  def update(self, model, loss, accuracy):
+  def update(self, model, loss, accuracy, epoch):
     """
     Update the best model.
 
@@ -20,18 +21,13 @@ class ModelManager:
     model : current model
     loss : current loss value
     accuracy : current accuracy rate
+    epoch : current epoch
 
     """
-    if self.accuracy is None:
+    if self.accuracy is None or self.accuracy < accuracy:
       self.loss, self.accuracy = loss, accuracy
       self.model = model
-    # elif accuracy > self.accuracy and accuracy - self.accuracy <= 5E-3:
-    #   if loss - self.loss <= 1E-1:  # slightly increase acc and loss is ok
-    #     self.loss, self.accuracy = loss, accuracy
-    #     self.model = model
-    elif self.accuracy < accuracy:
-      self.loss, self.accuracy = loss, accuracy
-      self.model = model
+      self.epoch = epoch
 
   def save(self, file_name, only_param=True):
     """
@@ -98,6 +94,7 @@ class TrainRecorder:
 
   def save(self, file_name):
     """
+    Save the training process.
 
     Parameters
     ----------
@@ -113,7 +110,7 @@ class TrainRecorder:
       col_list = ", ".join(("loss", "accuracy")) + "\n"
       file.write(col_list)
       for loss, accuracy in zip(self.loss_list, self.accuracy_list):
-        line = f"{loss:.6f}, {accuracy:.4f}\n"
+        line = f"{loss:.6f}, {accuracy:.6f}\n"
         file.write(line)
 
     cprint(rf"{__class__.__name__}: save a record file named {file_name} successfully!", "green")

@@ -74,7 +74,7 @@ optimizer = torch.optim.Adam(model.parameters(), LR)
 loss_function = nn.CrossEntropyLoss()
 
 # Train!
-torch_tools.torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOCH, "MNIST")
+torch_tools.torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOCH, name="MNIST")
 # the last parameter is the name for saving model and training process.
 ```
 

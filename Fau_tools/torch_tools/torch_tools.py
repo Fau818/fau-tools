@@ -52,6 +52,25 @@ def __show_progress(now, total, loss=None, accuracy=None, time_manager=None):
 
 
 
+def __stop_training(epoch, model_manager, threshold):
+  """
+
+  Parameters
+  ----------
+  epoch : current epoch
+  model_manager : the model manager
+  threshold : early_stop threshold
+
+  Returns
+  -------
+  Boolean value, indicating whether should stop training.
+
+  """
+  gap = epoch - model_manager.epoch
+  return gap >= threshold
+
+
+
 def calc_accuracy(model, test_loader, DEVICE=None):
   """
   Calculate the accuracy rate in the test dataset.
@@ -87,7 +106,7 @@ def calc_accuracy(model, test_loader, DEVICE=None):
 
 
 @utility.calc_time
-def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOCH=100, name=None, save_model=True, DEVICE=None):
+def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOCH=100, early_stop=None, name=None, save_model=True, DEVICE=None):
   """
   Train the model.
 
@@ -99,13 +118,14 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
   optimizer : optimizer function
   loss_function : loss function
   EPOCH : training epoch value
+  early_stop : Whether use early stop; Pass an integer as the threshold
   name : if the training process needs to be saved, please pass the file name without postfix.
   save_model : whether the trained model needs to be saved; if needed please ensure the name parameter is not None.
   DEVICE : cpu or cuda; if None, will be judged automatically
 
   Returns
   -------
-  Some files maybe generated:
+  Some files may be generated:
     1. the trained model file named f"{name}.pth".
     2. the values variation during the training named f"{name}.csv".
     3. the hyperparameters and time spent file named f"{name}.txt".
@@ -155,8 +175,13 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
     __show_progress(epoch, EPOCH, loss_value, accuracy, time_manager)
 
     # update and record
-    model_manager.update(model, loss_value, accuracy)
+    model_manager.update(model, loss_value, accuracy, epoch)
     train_recorder.update(loss_value, accuracy)
+
+    # Judge early stop
+    if early_stop is not None and __stop_training(epoch, model_manager, early_stop):
+      cprint("Early stop: The model has gone through {early_stop} epochs without being optimized.")
+      break
 
 
   if name is None: return  # no save
@@ -184,6 +209,12 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
       file.write(f"train_data_number: {train_data_num}\n")
       file.write(f"test_data_number: {test_data_num}\n")
 
+    # save best info
+    file.write(f"{'-' * 20}\n")
+    file.write(f"The best model in the {model_manager.epoch} epoch.\n")
+
+    # save time
+    file.write(f"{'-' * 20}\n")
     cost_time = time_manager.get_elapsed_time()
     cost_time = utility.time_to_human(cost_time)
     file.write(f"Training cost: {cost_time}\n")
