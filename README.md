@@ -36,23 +36,23 @@ from Fau_tools import torch_tools
 
 # A simple CNN network
 class CNN(nn.Module):
-   def __init__(self):
-      super().__init__()
-      self.conv = nn.Sequential(
-         nn.Conv2d(1, 16, 3, 1, 1),  # -> (16, 28, 28)
-         nn.ReLU(),
-         nn.MaxPool2d(2),  # -> (16, 14, 14)
+  def __init__(self):
+    super().__init__()
+    self.conv = nn.Sequential(
+      nn.Conv2d(1, 16, 3, 1, 1),  # -> (16, 28, 28)
+      nn.ReLU(),
+      nn.MaxPool2d(2),  # -> (16, 14, 14)
 
-         nn.Conv2d(16, 32, 3, 1, 1),  # -> (32, 14, 14)
-         nn.ReLU(),
-         nn.MaxPool2d(2)  # -> (32, 7, 7)
-      )
-      self.output = nn.Linear(32 * 7 * 7, 10)
+      nn.Conv2d(16, 32, 3, 1, 1),  # -> (32, 14, 14)
+      nn.ReLU(),
+      nn.MaxPool2d(2)  # -> (32, 7, 7)
+    )
+    self.output = nn.Linear(32 * 7 * 7, 10)
 
-   def forward(self, x):
-      x = self.conv(x)
-      x = x.flatten(1)  # same as x = x.view(x.size(0), -1)
-      return self.output(x)
+  def forward(self, x):
+    x = self.conv(x)
+    x = x.flatten(1)  # same as x = x.view(x.size(0), -1)
+    return self.output(x)
 
 
 # Hyper Parameters definition
@@ -85,9 +85,9 @@ Now, we can run the python file, and the training process will be visualized, ju
 > Three files named `MNIST_9846.pth`, `MNIST_9846.csv` and `MNIST_9846.txt` will be saved.
 >
 > The first file is the trained model.
-> 
+>
 > The second file records the training process, which you can use matplotlib to visualize it.
-> 
+>
 > The third file saves some hyper parameters about the training.
 
 ---

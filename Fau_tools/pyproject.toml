@@ -1,0 +1,24 @@
+[tool.pyright]
+# https://github.com/microsoft/pyright/blob/main/docs/configuration.md
+
+# include = ["*"]
+exclude = [
+  "**/.idea",
+  "**/.vscode",
+  "**/__pycache__",
+  "**/.git",
+  "**/venv",
+]
+extraPaths = ["typings"]
+# defineConstant = { DEBUG = true }
+pythonPlatform = "Linux"  # values: "Windows" | "Darwin" | "Linux" | "All"
+
+typeCheckingMode = "off"  # values: "off" | "basic" | "strict"
+# values: true | false | "none" | "information" | "warning" | "error"
+# reportMissingImports    = false  # by flake8
+# reportUnusedImport      = false
+reportGeneralTypeIssues = false
+# reportMissingTypeStubs  = false
+reportUnusedExpression  = false
+
+# useLibraryCodeForTypes = false
