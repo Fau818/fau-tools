@@ -54,6 +54,7 @@ def __show_progress(now, total, loss=None, accuracy=None, time_manager=None):
 
 def __stop_training(epoch, model_manager, threshold):
   """
+  Judge whether satisfy early stop.
 
   Parameters
   ----------
@@ -180,7 +181,7 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 
     # Judge early stop
     if early_stop is not None and __stop_training(epoch, model_manager, early_stop):
-      cprint("Early stop: The model has gone through {early_stop} epochs without being optimized.")
+      cprint(f"Early stop: The model has gone through {early_stop} epochs without being optimized.", "yellow")
       break
 
 
