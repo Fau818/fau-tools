@@ -135,6 +135,7 @@ def calc_evaluation_indicators(model, test_loader, DEVICE=None):
       test_features, test_labels = test_features.to(DEVICE), test_labels.to(DEVICE)
       test_output: torch.Tensor = model(test_features)
       test_prediction: torch.Tensor = test_output.argmax(1)  # get classification result set
+      test_labels, test_prediction = test_labels.cpu(), test_prediction.cpu()
 
       cur_accuracy  = accuracy_score(test_labels, test_prediction)
       cur_precision = precision_score(test_labels, test_prediction, average="macro", zero_division=0)
