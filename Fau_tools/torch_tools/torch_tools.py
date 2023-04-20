@@ -161,17 +161,19 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
   time_manager = TimeManager()
 
   for epoch in range(EPOCH):
+    loss_list = list()
     for _, (train_x, train_y) in enumerate(train_loader):
       train_x, train_y = train_x.to(DEVICE), train_y.to(DEVICE)
       output: torch.Tensor = model(train_x)
       loss: torch.Tensor = loss_function(output, train_y)
+      loss_list.append(loss.item())
 
       optimizer.zero_grad()
       loss.backward()
       optimizer.step()
 
     # end of epoch
-    loss_value, accuracy = loss.item(), calc_accuracy(model, test_loader, DEVICE)  # get loss and acc
+    loss_value, accuracy = sum(loss_list) / len(loss_list), calc_accuracy(model, test_loader, DEVICE)  # get loss and acc
     time_manager.time_tick()  # tick current time
     __show_progress(epoch, EPOCH, loss_value, accuracy, time_manager)
 
