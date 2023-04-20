@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "fau-tools"
+version = "1.4.3"
+description = "A python module. The main function is for pytorch training."
+authors = ["Fau <Fau818@qq.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "fau_tools"}]
+homepage   = "https://github.com/Fau818/Fau_tools"
+repository = "https://github.com/Fau818/Fau_tools"
+
+[tool.poetry.dependencies]
+python = ">=3.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
