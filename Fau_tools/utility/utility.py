@@ -102,7 +102,7 @@ def cprint(*values, color='red', show=True, sep=' ', end='\n', **kwargs):
   if color in __COLOR_DICT: HEAD = __COLOR_DICT[color]
 
   color_string = HEAD + sep.join(str(value) for value in values) + TAIL
-  if show: show(color_string, sep=sep, end=end, **kwargs)
+  if show: print(color_string, sep=sep, end=end, **kwargs)
   return color_string
 
 
