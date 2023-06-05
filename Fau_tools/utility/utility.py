@@ -70,14 +70,14 @@ __COLOR_DICT = {
   'cyan'  : "\033[96m", 'c': "\033[96m",
   'white' : "\033[97m", 'w': "\033[97m",
 
-  'solid_black' : "\033[0;97;100m", "sB": "\033[0;97;100m",
-  'solid_red'   : "\033[0;97;101m", 'sr': "\033[0;97;101m",
-  'solid_green' : "\033[0;90;102m", 'sg': "\033[0;90;102m",
-  'solid_yellow': "\033[0;90;103m", 'sy': "\033[0;90;103m",
-  'solid_blue'  : "\033[0;97;104m", 'sb': "\033[0;97;104m",
-  'solid_purple': "\033[0;97;105m", 'sp': "\033[0;97;105m",
-  'solid_cyan'  : "\033[0;90;106m", 'sc': "\033[0;90;106m",
-  'solid_white' : "\033[0;90;107m", 'sw': "\033[0;90;107m",
+  'solid_black' : "\033[1;97;100m", "sB": "\033[1;97;100m",
+  'solid_red'   : "\033[1;97;101m", 'sr': "\033[1;97;101m",
+  'solid_green' : "\033[1;90;102m", 'sg': "\033[1;90;102m",
+  'solid_yellow': "\033[1;90;103m", 'sy': "\033[1;90;103m",
+  'solid_blue'  : "\033[1;97;104m", 'sb': "\033[1;97;104m",
+  'solid_purple': "\033[1;97;105m", 'sp': "\033[1;97;105m",
+  'solid_cyan'  : "\033[1;90;106m", 'sc': "\033[1;90;106m",
+  'solid_white' : "\033[1;90;107m", 'sw': "\033[1;90;107m",
 }
 
 
@@ -98,12 +98,74 @@ def cprint(*values, color='red', show=True, sep=' ', end='\n', **kwargs):
   return the colorful string.
 
   """
-  HEAD, TAIL = "\033[91m", "\033[0m"
-  if color in __COLOR_DICT: HEAD = __COLOR_DICT[color]
+  if color not in __COLOR_DICT: raise ValueError(f"color should be in __COLOR_DICT, but got {color}.")
+  HEAD, TAIL = __COLOR_DICT[color], "\033[0m"
 
   color_string = HEAD + sep.join(str(value) for value in values) + TAIL
   if show: print(color_string, sep=sep, end=end, **kwargs)
   return color_string
+
+
+def custom_notify(title, content, title_color, content_color, show=True):
+  """
+  Customize the notify message.
+
+  Parameters
+  ----------
+  title         : the title of notify
+  content       : the content of notify
+  title_color   : the color of title
+  content_color : the color of content
+  show          : whether to print
+
+  Returns
+  -------
+  the colorful string
+
+  """
+  ctitle   = cprint(f" {title} ", color=title_color, show=False)
+  cconcent = cprint(content, color=content_color, show=False)
+
+  ctext = " ".join((ctitle, cconcent))
+  if show: print(ctext)
+  return ctext
+
+
+def notify(title, content, level="info", show=True):
+  """
+  Notify message.
+
+  Parameters
+  ----------
+  title   : the title of notify
+  content : the content of notify
+  level   : the level of notify; can be an `int` or `str`
+  show    : whether to print
+
+  Returns
+  -------
+  the colorful string
+
+  """
+  LEVEL_LIST = ["info", "warn", "error"]
+  LEVEL_COLORS = {
+    "info" : ("solid_blue",   "blue"),
+    "warn" : ("solid_yellow", "yellow"),
+    "error": ("solid_red",    "red"),
+  }
+
+  if isinstance(level, str):
+    level = level.lower()
+    if level == "warning": level = "warn"  # special case
+  elif isinstance(level, int):
+    if level < 0 or level > 2: raise ValueError(cprint(f"level should in [0, 2], but got {level}.", show=False))
+    else: level = LEVEL_LIST[level]
+
+  if level not in LEVEL_LIST: raise ValueError(cprint(f"level should in {LEVEL_LIST}.", show=False))
+
+  ctext = custom_notify(title, content, *LEVEL_COLORS[level], show=False)
+  if show: print(ctext)
+  return ctext
 
 
 
