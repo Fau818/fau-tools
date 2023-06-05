@@ -59,6 +59,7 @@ def time_to_human(time):
 # ------------------------------------------------------------
 # --------------- color print function
 # ------------------------------------------------------------
+# \033[{style=0};{fg=0};{bg}m
 __COLOR_DICT = {
   'black' : "\033[90m", "B": "\033[90m",
   'red'   : "\033[91m", 'r': "\033[91m",  # default
@@ -68,30 +69,41 @@ __COLOR_DICT = {
   'purple': "\033[95m", 'p': "\033[95m",
   'cyan'  : "\033[96m", 'c': "\033[96m",
   'white' : "\033[97m", 'w': "\033[97m",
+
+  'solid_black' : "\033[0;97;100m", "sB": "\033[0;97;100m",
+  'solid_red'   : "\033[0;97;101m", 'sr': "\033[0;97;101m",
+  'solid_green' : "\033[0;90;102m", 'sg': "\033[0;90;102m",
+  'solid_yellow': "\033[0;90;103m", 'sy': "\033[0;90;103m",
+  'solid_blue'  : "\033[0;97;104m", 'sb': "\033[0;97;104m",
+  'solid_purple': "\033[0;97;105m", 'sp': "\033[0;97;105m",
+  'solid_cyan'  : "\033[0;90;106m", 'sc': "\033[0;90;106m",
+  'solid_white' : "\033[0;90;107m", 'sw': "\033[0;90;107m",
 }
 
-def cprint(text, color='red', sep='\n', ret=False):
+
+def cprint(*values, color='red', show=True, sep=' ', end='\n', **kwargs):
   """
   Colorful printer.
 
   Parameters
   ----------
-  text : the content needs to be printed
-  color : a string representing color; all the valid values shown in `__COLOR_DICT`
-  sep : a kwarg in `print()` function
-  ret : if True, the colorful string will not be print, but will be returned.
+  values : the contents need to be printed
+  color  : a string representing color; all the valid values shown in `__COLOR_DICT`
+  show   : if True, the colorful string will be printed; otherwise, will be returned.
+  sep    : a kwarg in `print()` function
+  end    : a kwarg in `print()` function
 
   Returns
   -------
-  If `ret=True`, will return the colorful string.
+  return the colorful string.
 
   """
   HEAD, TAIL = "\033[91m", "\033[0m"
   if color in __COLOR_DICT: HEAD = __COLOR_DICT[color]
 
-  color_string = f"{HEAD}{text}{TAIL}"
-  if not ret: print(color_string, sep=sep)
-  else: return color_string
+  color_string = HEAD + sep.join(str(value) for value in values) + TAIL
+  if show: show(color_string, sep=sep, end=end, **kwargs)
+  return color_string
 
 
 
