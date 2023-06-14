@@ -43,10 +43,10 @@ def __show_progress(now, total, loss=None, accuracy=None, time_manager=None):
     elapsed_time = utility.time_to_human(elapsed_time)
     total_time = utility.time_to_human(total_time)
 
-    show += cprint(f"  [{elapsed_time}<{total_time}]", "cyan", ret=True)
+    show += cprint(f"  [{elapsed_time}<{total_time}]", color="cyan", show=False)
 
-  if loss: show += cprint(f"  loss: {loss:.6f}", "red", ret=True)
-  if accuracy: show += cprint(f"  accuracy: {accuracy:.2%}", "green", ret=True)
+  if loss: show += cprint(f"  loss: {loss:.6f}", color="red", show=False)
+  if accuracy: show += cprint(f"  accuracy: {accuracy:.2%}", color="green", show=False)
 
   print(show)
 
@@ -139,16 +139,16 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
       DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
       DEVICE_NAME = "CPU" if DEVICE == "cpu" else torch.cuda.get_device_name(0)
     except AssertionError:
-      cprint("No cuda detected.", "yellow")
+      cprint("No cuda detected.", color="yellow")
       DEVICE, DEVICE_NAME = "cpu", "CPU"
     except Exception:
-      cprint("Unknown error in torch_tools.", "red")
+      cprint("Unknown error in torch_tools.", color="red")
       DEVICE, DEVICE_NAME = "cpu", "CPU"
     finally:
-      cprint(f"{'='*10} Training in {DEVICE_NAME} {'='*10}", "green")
+      cprint(f"{'='*10} Training in {DEVICE_NAME} {'='*10}", color="green")
 
   if train_loader.batch_size == 1:
-    cprint("Warning: you shouldn't set the batch_size to 1. since if the NN uses BN, it will arise an error.", "red")
+    cprint("Warning: you shouldn't set the batch_size to 1. since if the NN uses BN, it will arise an error.", color="red")
 
   # for saving training data
   model_manager = ModelManager()
@@ -183,7 +183,7 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
 
     # Judge early stop
     if early_stop is not None and __stop_training(epoch, model_manager, early_stop):
-      cprint(f"Early stop: The model has gone through {early_stop} epochs without being optimized.", "yellow")
+      cprint(f"Early stop: The model has gone through {early_stop} epochs without being optimized.", color="yellow")
       break
 
 
@@ -206,7 +206,7 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
     try:  # for saving the number of train and test data
       train_data_num = len(train_loader.batch_sampler.sampler.data_source.labels)
       test_data_num = len(test_loader.batch_sampler.sampler.data_source.labels)
-    except AttributeError: cprint("Saving the number of train and test data error.", "red")
+    except AttributeError: cprint("Saving the number of train and test data error.", color="red")
     else:
       file.write(f"{'-' * 20}\n")
       file.write(f"train_data_number: {train_data_num}\n")
@@ -223,7 +223,7 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
     file.write(f"Training cost: {cost_time}\n")
 
 
-  cprint(f"{torch_train.__name__}: save a parameter file named {parameters_filename} successfully!", "green")
+  cprint(f"{torch_train.__name__}: save a parameter file named {parameters_filename} successfully!", color="green")
 
 
 

@@ -42,7 +42,7 @@ class ModelManager:
     file_name = f"{file_name}.pth"
     if only_param: torch.save(self.model.state_dict(), rf"{file_name}")
     else: torch.save(self.model, rf"{file_name}")
-    cprint(rf"{__class__.__name__}: save a model named {file_name} successfully!", "green")
+    cprint(rf"{__class__.__name__}: save a model named {file_name} successfully!", color="green")
 
   @staticmethod
   def load(model, file_path, DEVICE=None):
@@ -113,7 +113,7 @@ class TrainRecorder:
         line = f"{loss:.6f}, {accuracy:.6f}\n"
         file.write(line)
 
-    cprint(rf"{__class__.__name__}: save a record file named {file_name} successfully!", "green")
+    cprint(rf"{__class__.__name__}: save a record file named {file_name} successfully!", color="green")
 
 
 
