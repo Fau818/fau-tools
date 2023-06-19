@@ -1,7 +1,7 @@
 import torch
 import time
 
-from Fau_tools.utility import cprint
+from fau_tools.utility import cprint
 
 
 class ModelManager:

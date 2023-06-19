@@ -6,7 +6,7 @@ Moreover, it also supports some awesome features: saving model, saving training 
 
 ## Install
 
-`pip install Fau-tools`
+`pip install fau-tools`
 
 ## Usage
 
@@ -15,8 +15,8 @@ Moreover, it also supports some awesome features: saving model, saving training 
 The following code is recommended.
 
 ```python
-import Fau_tools
-from Fau_tools import torch_tools
+import fau_tools
+from fau_tools import torch_tools
 ```
 
 ### quick start
@@ -31,8 +31,8 @@ import torch.utils.data as tdata
 import torchvision
 from torch import nn
 
-import Fau_tools
-from Fau_tools import torch_tools
+import fau_tools
+from fau_tools import torch_tools
 
 # A simple CNN network
 class CNN(nn.Module):

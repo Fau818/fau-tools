@@ -2,11 +2,11 @@
 #
 #
 # setup(
-#   name="Fau_tools",
+#   name="fau-tools",
 #   version="1.4.4",
 #   author="utility",
 #   author_email="Fau818@qq.com",
-#   url="https://github.com/Fau818/Fau_tools",
+#   url="https://github.com/Fau818/fau-tools",
 #   license="MIT",
 #   description="A python module. The main function is for pytorch training.",
 #   python_requires=">=3.6",

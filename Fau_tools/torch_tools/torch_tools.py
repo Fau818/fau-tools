@@ -3,9 +3,9 @@ import torch
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 
-from Fau_tools import utility
-from Fau_tools.data_structure import ModelManager, TimeManager, TrainRecorder
-from Fau_tools.utility import cprint
+from fau_tools import utility
+from fau_tools.data_structure import ModelManager, TimeManager, TrainRecorder
+from fau_tools.utility import cprint
 
 
 

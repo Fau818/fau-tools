@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import torch.utils.data as tdata
 
-from Fau_tools.data_structure import TimeManager
+from fau_tools.data_structure import TimeManager
 
 
 # ------------------------------------------------------------

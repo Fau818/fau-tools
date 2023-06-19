@@ -25,15 +25,15 @@ reportUnusedExpression  = false
 
 
 [tool.poetry]
-name = "Fau-tools"
-version = "1.4.5.2"
+name = "fau-tools"
+version = "1.5.0"
 description = "A python module. The main function is for pytorch training."
 authors = ["Fau <Fau818@qq.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "Fau_tools"}]
-homepage   = "https://github.com/Fau818/Fau_tools"
-repository = "https://github.com/Fau818/Fau_tools"
+packages = [{include = "fau_tools"}]
+homepage   = "https://github.com/Fau818/fau-tools"
+repository = "https://github.com/Fau818/fau-tools"
 
 [tool.poetry.dependencies]
 python = ">=3.6"
