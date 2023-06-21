@@ -1,11 +1,8 @@
-import pandas as pd
 import torch
-import matplotlib.pyplot as plt
-from matplotlib import ticker
 
-from fau_tools import utility
+from fau_tools import torch_tools, utility
 from fau_tools.data_structure import ModelManager, TimeManager, TrainRecorder
-from fau_tools.utility import cprint
+from fau_tools.utility import cprint, notify
 
 
 
@@ -29,19 +26,19 @@ def __show_progress(now, total, loss=None, accuracy=None, time_manager=None):
   now += 1  # remap 0 -> 1
   FINISH, UNFINISH = '█', ' '
   N = 30  # the length
-  PERCENT = now / total
 
   # for showing blocks
-  finish = int(PERCENT * N) * FINISH
+  percent  = now / total
+  finish   = int(percent * N) * FINISH
   unfinish = (N - len(finish)) * UNFINISH
-  show = f"|{finish}{unfinish}| {PERCENT:.2%}"
+  show     = f"|{finish}{unfinish}| {percent:.2%}"
 
   if time_manager:  # for showing time process:
     average_time, elapsed_time = time_manager.get_average_time(), time_manager.get_elapsed_time()
     total_time = total * average_time
 
     elapsed_time = utility.time_to_human(elapsed_time)
-    total_time = utility.time_to_human(total_time)
+    total_time   = utility.time_to_human(total_time)
 
     show += cprint(f"  [{elapsed_time}<{total_time}]", color="cyan", show=False)
 
@@ -107,7 +104,14 @@ def calc_accuracy(model, test_loader, DEVICE=None):
 
 
 @utility.calc_time
-def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOCH=100, early_stop=None, name=None, save_model=True, DEVICE=None):
+def torch_train(
+  model, train_loader, test_loader, optimizer, loss_function,
+  *,
+  EPOCH=100, early_stop=None,
+  name=None, save_model=True,
+  clearml_task=None,
+  DEVICE=None
+  ):
   """
   Train the model.
 
@@ -122,6 +126,7 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
   early_stop : Whether use early stop; Pass an integer as the threshold
   name : if the training process needs to be saved, please pass the file name without postfix.
   save_model : whether the trained model needs to be saved; if needed please ensure the name parameter is not None.
+  clearml_task : should be the `Task` type in `clearml` module, which means using `clearml` to record experiment.
   DEVICE : cpu or cuda; if None, will be judged automatically
 
   Returns
@@ -150,8 +155,17 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
   if train_loader.batch_size == 1:
     cprint("Warning: you shouldn't set the batch_size to 1. since if the NN uses BN, it will arise an error.", color="red")
 
+  # Check clearml_task
+  if clearml_task is not None:
+    from clearml import Task
+    if not isinstance(clearml_task, Task):
+      notify(torch_train.__name__, "TypeError, clearml_task should be the `Task` type.", "error")
+      return
+    notify(torch_train.__name__, "ClearML task is enabled.", "info")
+
+
   # for saving training data
-  model_manager = ModelManager()
+  model_manager  = ModelManager()
   train_recorder = TrainRecorder()
 
   # begin training
@@ -180,6 +194,14 @@ def torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOC
     # update and record
     model_manager.update(model, loss_value, accuracy, epoch)
     train_recorder.update(loss_value, accuracy)
+
+    # clearml
+    if clearml_task is not None:
+      clearml_logger = clearml_task.get_logger()
+      clearml_logger.report_scalar("train/loss", "loss", loss_value, epoch)
+      clearml_logger.report_scalar("val/accuracy", "accuracy", accuracy, epoch)
+      clearml_logger.report_scalar("learning_rate", "learning_rate", optimizer.param_groups[0]["lr"], epoch)
+
 
     # Judge early stop
     if early_stop is not None and __stop_training(epoch, model_manager, early_stop):
@@ -253,6 +275,7 @@ def load_record(file_path):
   if len(file_path) < 4: raise ValueError("The file name is too short! (Missing postfix)")
 
   if file_path[-4:] == '.csv':
+    import pandas as pd
     csv = pd.read_csv(file_path, skipinitialspace=True)
     loss_list = csv["loss"].tolist()
     accuracy_list = csv["accuracy"].tolist()
@@ -277,6 +300,9 @@ def draw_plot(*args, legend_names=None, x_name=None, y_name=None, percent=False)
   percent : display the values of the y-axis as a percentage.
 
   """
+  import matplotlib.pyplot as plt
+  from matplotlib import ticker
+
   if legend_names is not None and len(args) != len(legend_names):
     raise ValueError("the length of legend is not equal to the number of args.")
 
@@ -296,7 +322,6 @@ def draw_plot(*args, legend_names=None, x_name=None, y_name=None, percent=False)
     plt.gca().yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=1))
 
   # plt.show()  # Note: This will lead to show the figure one by one.
-
 
 
 

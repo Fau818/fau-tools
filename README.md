@@ -63,6 +63,8 @@ BATCH_SIZE = 1024
 # Load dataset
 TRAIN_DATA = torchvision.datasets.MNIST('Datasets', True, torchvision.transforms.ToTensor(), download=True)
 TEST_DATA = torchvision.datasets.MNIST('Datasets', False, torchvision.transforms.ToTensor())
+TRAIN_DATA.data = TRAIN_DATA.data[:6000]  # mini data
+TEST_DATA.data = TEST_DATA.data[:2000]  # mini data
 
 # Get data loader
 train_loader = tdata.DataLoader(TRAIN_DATA, BATCH_SIZE, True)
@@ -74,7 +76,7 @@ optimizer = torch.optim.Adam(model.parameters(), LR)
 loss_function = nn.CrossEntropyLoss()
 
 # Train!
-torch_tools.torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOCH, name="MNIST")
+torch_tools.torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOCH=EPOCH, name="MNIST")
 # the last parameter is the name for saving model and training process.
 ```
 
