@@ -185,6 +185,7 @@ class Color:
     if show: print(color_string, sep=sep, end=end, **kwargs)
     return color_string
 
+
   @classmethod
   def custom_notify(cls, title, content, color, show=True):
     """
@@ -245,6 +246,7 @@ class Color:
 
     if show: print(ctext)
     return ctext
+
 
 
 cprint        = Color.cprint
