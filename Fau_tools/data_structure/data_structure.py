@@ -134,3 +134,17 @@ class TimeManager:
   def get_average_time(self): return self.elapsed_time / (len(self.time_list) - 1)  # interval: len - 1
 
   def get_elapsed_time(self): return self.elapsed_time
+
+
+
+
+
+class TrainRunner:
+  """Train runner."""
+
+  def __init__(self):
+    ...
+
+  def before_train(self): ...
+  def after_train(self): ...
+  def before_train(self): ...

@@ -30,19 +30,19 @@ def __show_progress(now, total, loss=None, accuracy=None, time_manager=None):
   now += 1  # remap 0 -> 1
   FINISH, UNFINISH = '█', ' '
   N = 30  # the length
-  PERCENT = now / total
 
   # for showing blocks
-  finish = int(PERCENT * N) * FINISH
+  percent = now / total
+  finish   = int(percent * N) * FINISH
   unfinish = (N - len(finish)) * UNFINISH
-  show = f"|{finish}{unfinish}| {PERCENT:.2%}"
+  show     = f"|{finish}{unfinish}| {percent:.2%}"
 
   if time_manager:  # for showing time process:
     average_time, elapsed_time = time_manager.get_average_time(), time_manager.get_elapsed_time()
     total_time = total * average_time
 
     elapsed_time = utility.time_to_human(elapsed_time)
-    total_time = utility.time_to_human(total_time)
+    total_time   = utility.time_to_human(total_time)
 
     show += cprint(f"  [{elapsed_time}<{total_time}]", color="cyan", show=False)
 
@@ -168,7 +168,7 @@ def torch_train(
 
 
   # for saving training data
-  model_manager = ModelManager()
+  model_manager  = ModelManager()
   train_recorder = TrainRecorder()
 
   # begin training

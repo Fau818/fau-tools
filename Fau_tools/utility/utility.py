@@ -5,6 +5,7 @@ import torch
 from torch import nn
 
 
+
 # ------------------------------------------------------------
 # --------------- a decorator can show function running time
 # ------------------------------------------------------------
@@ -59,113 +60,239 @@ def time_to_human(time):
 # ------------------------------------------------------------
 # --------------- color print function
 # ------------------------------------------------------------
-# \033[{style=0};{fg=0};{bg}m
-__COLOR_DICT = {
-  'black' : "\033[90m", "B": "\033[90m",
-  'red'   : "\033[91m", 'r': "\033[91m",  # default
-  'green' : "\033[92m", 'g': "\033[92m",
-  'yellow': "\033[93m", 'y': "\033[93m",
-  'blue'  : "\033[94m", 'b': "\033[94m",
-  'purple': "\033[95m", 'p': "\033[95m",
-  'cyan'  : "\033[96m", 'c': "\033[96m",
-  'white' : "\033[97m", 'w': "\033[97m",
-
-  'solid_black' : "\033[1;97;100m", "sB": "\033[1;97;100m",
-  'solid_red'   : "\033[1;97;101m", 'sr': "\033[1;97;101m",
-  'solid_green' : "\033[1;90;102m", 'sg': "\033[1;90;102m",
-  'solid_yellow': "\033[1;90;103m", 'sy': "\033[1;90;103m",
-  'solid_blue'  : "\033[1;97;104m", 'sb': "\033[1;97;104m",
-  'solid_purple': "\033[1;97;105m", 'sp': "\033[1;97;105m",
-  'solid_cyan'  : "\033[1;90;106m", 'sc': "\033[1;90;106m",
-  'solid_white' : "\033[1;90;107m", 'sw': "\033[1;90;107m",
-}
-
-
-def cprint(*values, color='red', show=True, sep=' ', end='\n', **kwargs):
-  """
-  Colorful printer.
-
-  Parameters
-  ----------
-  values : the contents need to be printed
-  color  : a string representing color; all the valid values shown in `__COLOR_DICT`
-  show   : if True, the colorful string will be printed; otherwise, will be returned.
-  sep    : a kwarg in `print()` function
-  end    : a kwarg in `print()` function
-
-  Returns
-  -------
-  return the colorful string.
-
-  """
-  if color not in __COLOR_DICT: raise ValueError(f"color should be in __COLOR_DICT, but got {color}.")
-  HEAD, TAIL = __COLOR_DICT[color], "\033[0m"
-
-  color_string = HEAD + sep.join(str(value) for value in values) + TAIL
-  if show: print(color_string, sep=sep, end=end, **kwargs)
-  return color_string
-
-
-def custom_notify(title, content, title_color, content_color, show=True):
-  """
-  Customize the notify message.
-
-  Parameters
-  ----------
-  title         : the title of notify
-  content       : the content of notify
-  title_color   : the color of title
-  content_color : the color of content
-  show          : whether to print
-
-  Returns
-  -------
-  the colorful string
-
-  """
-  ctitle   = cprint(f" {title} ", color=title_color, show=False)
-  cconcent = cprint(content, color=content_color, show=False)
-
-  ctext = " ".join((ctitle, cconcent))
-  if show: print(ctext)
-  return ctext
-
-
-def notify(title, content, level="info", show=True):
-  """
-  Notify message.
-
-  Parameters
-  ----------
-  title   : the title of notify
-  content : the content of notify
-  level   : the level of notify; can be an `int` or `str`
-  show    : whether to print
-
-  Returns
-  -------
-  the colorful string
-
-  """
-  LEVEL_LIST = ["info", "warn", "error"]
-  LEVEL_COLORS = {
-    "info" : ("solid_blue",   "blue"),
-    "warn" : ("solid_yellow", "yellow"),
-    "error": ("solid_red",    "red"),
+class Color:
+  # TODO: use enum ?   can use dynamic value to acquire enum value?
+  BASIC_COLORS = {
+    "black"  : "#000000", "B": "#000000",
+    "red"    : "#C91B00", "r": "#C91B00",
+    "green"  : "#00DC00", "g": "#00DC00",
+    "yellow" : "#EEEE55", "y": "#EEEE55",
+    "blue"   : "#007DFF", "b": "#007DFF",
+    "magenta": "#AD83E9", "m": "#AD83E9", "p": "#AD83E9",
+    "cyan"   : "#30E1FD", "c": "#30E1FD",
+    "white"  : "#FFFFFF", "w": "#FFFFFF",
   }
 
-  if isinstance(level, str):
-    level = level.lower()
-    if level == "warning": level = "warn"  # special case
-  elif isinstance(level, int):
-    if level < 0 or level > 2: raise ValueError(cprint(f"level should in [0, 2], but got {level}.", show=False))
-    else: level = LEVEL_LIST[level]
 
-  if level not in LEVEL_LIST: raise ValueError(cprint(f"level should in {LEVEL_LIST}.", show=False))
+  class component:
+    """A lua style dict."""
+    start   = "\033["
+    end     = "\033[0m"
+    fg_lead = "38;2;"
+    bg_lead = "48;2;"
+    bold    = "1;"
+    italic  = "3;"
 
-  ctext = custom_notify(title, content, *LEVEL_COLORS[level], show=False)
-  if show: print(ctext)
-  return ctext
+
+  @staticmethod
+  def hex2dec(color_hex: str):
+    """
+    Convert `#RRGGBB` to `(R, G, B)`.
+
+    Parameters
+    ----------
+    color_hex : The hexadecimal representation of a color.
+
+    Returns
+    -------
+    A tuple (R, G, B) represents the color in decimal.
+
+    """
+    color_hex = color_hex.lstrip("#")
+    assert len(color_hex) == 6, "Error in color format, excepted `#RRGGBB`."
+    r_hex, g_hex, b_hex = [color_hex[index:index+2] for index in range(0, 6, 2)]
+    r_dec, g_dec, b_dec = [int(v_hex, 16) for v_hex in (r_hex, g_hex, b_hex)]
+    return (r_dec, g_dec, b_dec)
+
+
+  # TODO: accept hex or dec
+  # TODO: return hex or dec
+  @classmethod
+  def get_fg_by_bg(cls, bg_dec: tuple[int,int,int]):
+    """
+    Determine whether is a bright color.
+
+    Parameters
+    ----------
+    bg_dec : tuple[int, int, int]
+
+    Returns
+    -------
+    A bool value represents whether is bright color.
+
+    """
+    r_dec, g_dec, b_dec = bg_dec
+    luminance = (0.299 * r_dec + 0.587 * g_dec + 0.114 * b_dec) / 255
+    is_bright = luminance > 0.5
+    return cls.BASIC_COLORS["black"] if is_bright else cls.BASIC_COLORS["white"]
+
+
+  @classmethod
+  def parse_color(cls, color_hex, solid=False):
+    if not solid:
+      fg = cls.hex2dec(color_hex)
+      return f"{cls.component.fg_lead}{fg[0]};{fg[1]};{fg[2]}m"
+    else:
+      bg = cls.hex2dec(color_hex)
+      fg = cls.hex2dec(cls.get_fg_by_bg(bg))
+      # TODO: call function to get color pattern, like f_name(color_dec, end=False)
+      return f"{cls.component.fg_lead}{fg[0]};{fg[1]};{fg[2]};{cls.component.bg_lead}{bg[0]};{bg[1]};{bg[2]}m"
+
+
+  @classmethod
+  def get_color_pattern(cls, color, bold=False, italic=False, solid=False):
+    if color not in cls.BASIC_COLORS: raise ValueError(f"color should be defined in `BASIC_COLORS`, got `{color}`.")
+
+    color_hex = cls.BASIC_COLORS[color]
+    style = (cls.component.bold if bold else "") + (cls.component.italic if italic else "")
+    return f"{style}{cls.parse_color(color_hex, solid)}"
+
+
+  @classmethod
+  def cprint(cls, *values, color='red', bold=False, italic=False, solid=False, show=True, sep=' ', end='\n', **kwargs):
+    """
+    Colorful printer.
+
+    Parameters
+    ----------
+    values : the contents need to be printed
+    color  : a string representing color; all the valid values shown in `__COLOR_DICT`
+    bold   : whether to use bold text
+    italic : whether to use italic text
+    solid  : whether to use the color as background color.
+    show   : if True, the colorful string will be printed; otherwise, will be returned.
+    sep    : a kwarg in `print()` function
+    end    : a kwarg in `print()` function
+
+    Returns
+    -------
+    return the colorful string.
+
+    """
+    color_pattern = cls.get_color_pattern(color, bold, italic, solid)
+    color_string = f"{cls.component.start}{color_pattern}{sep.join(str(value) for value in values)}{cls.component.end}"
+    if show: print(color_string, sep=sep, end=end, **kwargs)
+    return color_string
+
+
+
+cprint = Color.cprint
+
+
+if __name__ == "__main__":
+  cprint("hello", color="g", bold=True, solid=True)
+  ...
+
+
+
+
+# # pattern: \033[38;2;R;G;B;48;2;R;G;Bm
+# __COLOR_DICT = {
+#   "black" : "\033[90m", "B": "\033[90m",
+#   "red"   : "\033[91m", "r": "\033[91m",  # default
+#   "green" : "\033[92m", "g": "\033[92m",
+#   "yellow": "\033[93m", "y": "\033[93m",
+#   "blue"  : "\033[94m", "b": "\033[94m",
+#   "purple": "\033[95m", "p": "\033[95m",
+#   "cyan"  : "\033[96m", "c": "\033[96m",
+#   "white" : "\033[97m", "w": "\033[97m",
+
+#   "solid_black" : "\033[1;97;100m", "sB": "\033[1;97;100m",
+#   "solid_red"   : "\033[1;97;101m", "sr": "\033[1;97;101m",
+#   "solid_green" : "\033[1;90;102m", "sg": "\033[1;90;102m",
+#   "solid_yellow": "\033[1;90;103m", "sy": "\033[1;90;103m",
+#   "solid_blue"  : "\033[1;97;104m", "sb": "\033[1;97;104m",
+#   "solid_purple": "\033[1;97;105m", "sp": "\033[1;97;105m",
+#   "solid_cyan"  : "\033[1;90;106m", "sc": "\033[1;90;106m",
+#   "solid_white" : "\033[1;90;107m", "sw": "\033[1;90;107m",
+# }
+
+
+# def cprint(*values, color='red', show=True, sep=' ', end='\n', **kwargs):
+#   """
+#   Colorful printer.
+
+#   Parameters
+#   ----------
+#   values : the contents need to be printed
+#   color  : a string representing color; all the valid values shown in `__COLOR_DICT`
+#   show   : if True, the colorful string will be printed; otherwise, will be returned.
+#   sep    : a kwarg in `print()` function
+#   end    : a kwarg in `print()` function
+
+#   Returns
+#   -------
+#   return the colorful string.
+
+#   """
+#   if color not in __COLOR_DICT: raise ValueError(f"color should be in __COLOR_DICT, but got {color}.")
+#   HEAD, TAIL = __COLOR_DICT[color], "\033[0m"
+
+#   color_string = HEAD + sep.join(str(value) for value in values) + TAIL
+#   if show: print(color_string, sep=sep, end=end, **kwargs)
+#   return color_string
+
+
+# def custom_notify(title, content, title_color, content_color, show=True):
+#   """
+#   Customize the notify message.
+
+#   Parameters
+#   ----------
+#   title         : the title of notify
+#   content       : the content of notify
+#   title_color   : the color of title
+#   content_color : the color of content
+#   show          : whether to print
+
+#   Returns
+#   -------
+#   the colorful string
+
+#   """
+#   ctitle   = cprint(f" {title} ", color=title_color, show=False)
+#   cconcent = cprint(content, color=content_color, show=False)
+
+#   ctext = " ".join((ctitle, cconcent))
+#   if show: print(ctext)
+#   return ctext
+
+
+# def notify(title, content, level="info", show=True):
+#   """
+#   Notify message.
+
+#   Parameters
+#   ----------
+#   title   : the title of notify
+#   content : the content of notify
+#   level   : the level of notify; can be an `int` or `str`
+#   show    : whether to print
+
+#   Returns
+#   -------
+#   the colorful string
+
+#   """
+#   LEVEL_LIST = ["info", "warn", "error"]
+#   LEVEL_COLORS = {
+#     "info" : ("solid_blue",   "blue"),
+#     "warn" : ("solid_yellow", "yellow"),
+#     "error": ("solid_red",    "red"),
+#   }
+
+#   if isinstance(level, str):
+#     level = level.lower()
+#     if level == "warning": level = "warn"  # special case
+#   elif isinstance(level, int):
+#     if level < 0 or level > 2: raise ValueError(cprint(f"level should in [0, 2], but got {level}.", show=False))
+#     else: level = LEVEL_LIST[level]
+
+#   if level not in LEVEL_LIST: raise ValueError(cprint(f"level should in {LEVEL_LIST}.", show=False))
+
+#   ctext = custom_notify(title, content, *LEVEL_COLORS[level], show=False)
+#   if show: print(ctext)
+#   return ctext
 
 
 
