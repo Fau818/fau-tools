@@ -56,27 +56,27 @@ class CNN(nn.Module):
 
 
 # Hyper Parameters definition
-EPOCH = 10
-LR = 1E-3
-BATCH_SIZE = 1024
+total_epoch = 10
+lr = 1E-3
+batch_size = 1024
 
 # Load dataset
-TRAIN_DATA = torchvision.datasets.MNIST('Datasets', True, torchvision.transforms.ToTensor(), download=True)
-TEST_DATA = torchvision.datasets.MNIST('Datasets', False, torchvision.transforms.ToTensor())
-TRAIN_DATA.data = TRAIN_DATA.data[:6000]  # mini data
-TEST_DATA.data = TEST_DATA.data[:2000]  # mini data
+train_data      = torchvision.datasets.MNIST('Datasets', True, torchvision.transforms.ToTensor(), download=True)
+test_data       = torchvision.datasets.MNIST('Datasets', False, torchvision.transforms.ToTensor())
+train_data.data = train_data.data[:6000]  # mini data
+test_data.data  = test_data.data[:2000]  # mini data
 
 # Get data loader
-train_loader = tdata.DataLoader(TRAIN_DATA, BATCH_SIZE, True)
-test_loader = tdata.DataLoader(TEST_DATA, BATCH_SIZE)
+train_loader = tdata.DataLoader(train_data, batch_size, True)
+test_loader  = tdata.DataLoader(test_data, batch_size)
 
 # Initialize model, optimizer and loss function
 model = CNN()
-optimizer = torch.optim.Adam(model.parameters(), LR)
+optimizer = torch.optim.Adam(model.parameters(), lr)
 loss_function = nn.CrossEntropyLoss()
 
 # Train!
-torch_tools.torch_train(model, train_loader, test_loader, optimizer, loss_function, EPOCH=EPOCH, name="MNIST")
+torch_tools.torch_train(model, train_loader, test_loader, optimizer, loss_function, total_epoch=total_epoch, name="MNIST")
 # the last parameter is the name for saving model and training process.
 ```
 

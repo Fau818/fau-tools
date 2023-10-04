@@ -14,10 +14,9 @@ class ModelManager:
   def save(self, file_name: str, only_param: bool=True) -> None: ...
 
   @staticmethod
-  def load(model: nn.Module, file_path: str, DEVICE: torch.device=None) -> None: ...
+  def load(model: nn.Module, file_path: str, device: torch.device=None) -> None: ...
 
   def get_postfix(self) -> str: ...
-
 
 
 class TrainRecorder:
@@ -28,7 +27,6 @@ class TrainRecorder:
   def update(self, loss_value: float, accuracy: float) -> None: ...
 
   def save(self, file_name: str) -> None: ...
-
 
 
 class TimeManager:
