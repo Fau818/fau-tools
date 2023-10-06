@@ -31,9 +31,9 @@ class Color:
   @classmethod
   def notify(cls, title: str, content: str, notify_type: str="info", show: bool=True) -> str: ...
 
-cprint: Callable
-custom_notify: Callable
-notify: Callable
+cprint        = Color.cprint
+custom_notify = Color.custom_notify
+notify        = Color.notify
 
 
 def __get_value_in_height_and_width(value: tuple[int,int]|int, value_name: str) -> tuple[int,int]: ...

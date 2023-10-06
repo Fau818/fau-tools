@@ -1,1 +1,1 @@
-from .data_structure import *
+from ._data_structure import *
