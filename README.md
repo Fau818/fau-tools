@@ -27,12 +27,12 @@ The tutor will use a simple example to help you get started quickly!
 
 ```python
 import torch
+import torch.nn as nn
 import torch.utils.data as tdata
 import torchvision
-from torch import nn
 
 import fau_tools
-from fau_tools import torch_tools
+
 
 # A simple CNN network
 class CNN(nn.Module):
@@ -49,6 +49,7 @@ class CNN(nn.Module):
     )
     self.output = nn.Linear(32 * 7 * 7, 10)
 
+
   def forward(self, x):
     x = self.conv(x)
     x = x.flatten(1)  # same as x = x.view(x.size(0), -1)
@@ -57,12 +58,12 @@ class CNN(nn.Module):
 
 # Hyper Parameters definition
 total_epoch = 10
-lr = 1E-3
+lr = 1E-2
 batch_size = 1024
 
 # Load dataset
-train_data      = torchvision.datasets.MNIST('Datasets', True, torchvision.transforms.ToTensor(), download=True)
-test_data       = torchvision.datasets.MNIST('Datasets', False, torchvision.transforms.ToTensor())
+train_data      = torchvision.datasets.MNIST('datasets', True, torchvision.transforms.ToTensor(), download=True)
+test_data       = torchvision.datasets.MNIST('datasets', False, torchvision.transforms.ToTensor())
 train_data.data = train_data.data[:6000]  # mini data
 test_data.data  = test_data.data[:2000]  # mini data
 
@@ -72,12 +73,11 @@ test_loader  = tdata.DataLoader(test_data, batch_size)
 
 # Initialize model, optimizer and loss function
 model = CNN()
-optimizer = torch.optim.Adam(model.parameters(), lr)
 loss_function = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr)
 
 # Train!
-torch_tools.torch_train(model, train_loader, test_loader, optimizer, loss_function, total_epoch=total_epoch, name="MNIST")
-# the last parameter is the name for saving model and training process.
+fau_tools.TaskRunner(model, train_loader, test_loader, loss_function, optimizer, total_epoch, exp_path="MNIST").train()
 ```
 
 Now, we can run the python file, and the training process will be visualized, just like the following picture.
