@@ -90,8 +90,7 @@ class TaskRunner:
     utils.notify(cls.__name__, content=content, notify_type=notify_type)
 
 
-  @classmethod
-  def _check_clearml_task(cls, clearml_task):
+  def _check_clearml_task(self, clearml_task):
     """Determine whether to enable ClearML task."""
     if clearml_task is None: return False
 
@@ -99,15 +98,17 @@ class TaskRunner:
     try:
       from clearml import Task
     except ImportError:
-      cls._class_notify("Run `from clearml import Task` error.", notify_type="error")
+      self._class_notify("Run `from clearml import Task` error.", notify_type="error")
       return False
 
     # Check object type.
     if not isinstance(clearml_task, Task):
-      cls._class_notify("TypeError: `clearml_task` should be the `clearml.Task` type.", notify_type="error")
+      self._class_notify("TypeError: `clearml_task` should be the `clearml.Task` type.", notify_type="error")
       return False
 
-    cls._class_notify("ClearML task is enabled.", notify_type="info")
+    import clearml
+    self.clearml_task: clearml.Task
+    self._class_notify("ClearML task is enabled.", notify_type="info")
     return True
 
 
@@ -133,8 +134,8 @@ class TaskRunner:
   def _train_step(self, features: torch.Tensor, targets: torch.Tensor):
     # Forward
     features, targets = features.to(self.device), targets.to(self.device)
-    outputs: torch.Tensor    = self.model(features)
-    loss: torch.Tensor = self.loss_function(outputs, targets)
+    outputs: torch.Tensor = self.model(features)
+    loss: torch.Tensor    = self.loss_function(outputs, targets)
     self.train_loss += loss.item()
 
     # Backward
@@ -165,13 +166,20 @@ class TaskRunner:
     # =============================================
     if self.exp_path is None: return
 
-    folder_path = f"{self.exp_path}_{self.model_manager.get_postfix()}"
-    folder_path = utils.create_folder(folder_path)
+    folder_path   = f"{self.exp_path}_{self.model_manager.get_postfix()}"
+    folder_path   = utils.create_folder(folder_path)
     if folder_path is None: return
 
-    if self.save_model: self.model_manager.save(f"{folder_path}/best.pth")
-    self.scalar_recorder.save(f"{folder_path}/{self.exp_path}.csv")
-    self._save_experiment(f"{folder_path}/{self.exp_path}.txt")
+    model_path    = f"{folder_path}/best.pth"
+    scalar_path   = f"{folder_path}/scalars.csv"
+    exp_info_path = f"{folder_path}/exp_info.txt"
+
+    self._save_experiment(exp_info_path)
+    self.scalar_recorder.save(scalar_path)
+    if self.save_model: self.model_manager.save(model_path)
+    if self.clearml_task:
+      self.clearml_task.upload_artifact("experiment information", exp_info_path)
+      self.clearml_task.close()
 
 
   def calc_accuracy(self, data_loader: tdata.DataLoader) -> float:
@@ -181,9 +189,9 @@ class TaskRunner:
     self.model.eval()
     with torch.no_grad():
       for features, targets in data_loader:
-        features: torch.Tensor = features.to(self.device)
-        targets: torch.Tensor  = targets.to(self.device)
-        outputs: torch.Tensor  = self.model(features)
+        features: torch.Tensor    = features.to(self.device)
+        targets: torch.Tensor     = targets.to(self.device)
+        outputs: torch.Tensor     = self.model(features)
         predictions: torch.Tensor = outputs.argmax(1)
         # loss: torch.Tensor = self.loss_function(outputs, targets)
         total_positive_num += sum(predictions.eq(targets)).item()
@@ -203,7 +211,7 @@ class TaskRunner:
 
     progress_section = utils.cprint(
       f"|{finish_char * finish_char_num}{unfinish_char * unfinish_char_num}| {percent:6.2%}",
-      color="yellow", show=False
+      color="magenta", show=False
     )
 
     average_time, elapsed_time = self.time_manager.get_average_time(), self.time_manager.get_elapsed_time()
@@ -229,10 +237,6 @@ class TaskRunner:
 
   def _report_scalars_to_clearml(self):
     if self.clearml_task is None: return
-
-    # NOTE: For debugging
-    # import clearml
-    # self.clearml_task: clearml.Task
     clearml_logger = self.clearml_task.get_logger()
     clearml_logger.report_scalar("loss", "train/loss", self.train_average_loss, self.cur_epoch)
     clearml_logger.report_scalar("metric", "test/accuracy", self.test_accuracy, self.cur_epoch)
@@ -250,7 +254,7 @@ class TaskRunner:
     file_path = utils.ensure_file_postfix(file_path, ".txt")
     with open(file_path, "w") as file:
       # Save experiment datetime
-      file.write(f"experiment end time: {datetime.now()}\n")
+      file.write(f"experiment end time: {datetime.now()}\n\n")
       # Save loss function and optimizer
       file.write(f"optimizer:\n{self.optimizer}\n")
       file.write(f"{'-' * 20}\n")

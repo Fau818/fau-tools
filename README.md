@@ -16,7 +16,6 @@ The following code is recommended.
 
 ```python
 import fau_tools
-from fau_tools import torch_tools
 ```
 
 ### quick start
@@ -84,13 +83,13 @@ Now, we can run the python file, and the training process will be visualized, ju
 
 ![training_visualization](github_attachment/training_visualization.png)
 
-> Three files named `MNIST_9846.pth`, `MNIST_9846.csv` and `MNIST_9846.txt` will be saved.
+> Three files named `best.pth`, `scalars.csv` and `exp_info.txt` will be saved.
 >
 > The first file is the trained model.
 >
-> The second file records the training process, which you can use matplotlib to visualize it.
+> The second file records scalar value changes in the training process, which you can use matplotlib to visualize it.
 >
-> The third file saves some hyper parameters about the training.
+> The third file saves some information about the experiment.
 
 ---
 
