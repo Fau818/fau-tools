@@ -273,6 +273,7 @@ class TaskRunner:
       # save time
       file.write(f"{'-' * 20}\n")
       cost_time = utils.time_to_human(self.time_manager.get_elapsed_time())
+      file.write(f"Training platform: {self.device_name}\n")
       file.write(f"Training cost: {cost_time}\n")
 
     if os.path.exists(file_path):
