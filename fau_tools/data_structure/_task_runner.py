@@ -74,7 +74,7 @@ class TaskRunner:
     # =============================================
     # ========== Scalars
     # =============================================
-    self.cur_epoch = 0
+    self.cur_epoch = 0  # NOTE: Start from zero.
     # NOTE: Consider use ModelManager to manage them.
     # The init loss value should be None, and use a function to update it.
     self.train_loss         = 0.0
@@ -161,6 +161,8 @@ class TaskRunner:
 
 
   def _after_train(self):
+    self.model_manager.report()
+
     # =============================================
     # ========== Save files
     # =============================================
@@ -179,6 +181,7 @@ class TaskRunner:
     if self.save_model: self.model_manager.save(model_path)
     if self.clearml_task:
       self.clearml_task.upload_artifact("experiment information", exp_info_path)
+      self.clearml_task.upload_artifact("scalars variation", scalar_path)
       self.clearml_task.close()
 
 
@@ -228,11 +231,11 @@ class TaskRunner:
 
 
   def _update_model(self):
-    self.model_manager.update(self.model, self.train_loss, self.test_accuracy, self.cur_epoch)
+    self.model_manager.update(self.model, self.train_average_loss, self.test_accuracy, self.cur_epoch)
 
 
   def _record_scalars(self):
-    self.scalar_recorder.update(self.train_loss, self.test_accuracy)
+    self.scalar_recorder.update(self.train_average_loss, self.test_accuracy)
 
 
   def _report_scalars_to_clearml(self):
@@ -277,8 +280,7 @@ class TaskRunner:
       file.write(f"Training cost: {cost_time}\n")
 
     if os.path.exists(file_path):
-      file_name = os.path.basename(file_path)
-      self._class_notify(f"Save experiment information file named {file_name} successfully!", notify_type="success")
+      self._class_notify(f"Save experiment information file to {file_path} successfully!", notify_type="success")
     else:
       self._class_notify(f"Save experiment information file error.", notify_type="error")
 

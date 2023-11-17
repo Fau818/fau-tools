@@ -52,7 +52,6 @@ class ScalarRecorder:
         file.write(line)
 
     if os.path.exists(file_path):
-      file_name = os.path.basename(file_path)
-      self._class_notify(f"Save training process file named {file_name} successfully!", notify_type="success")
+      self._class_notify(f"Save training process file to {file_path} successfully!", notify_type="success")
     else:
       self._class_notify(f"Save training process file error.", notify_type="error")

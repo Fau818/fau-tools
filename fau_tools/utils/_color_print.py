@@ -2,12 +2,12 @@ class Color:
   BASIC_COLORS = {
     "black"  : "#000000", "B": "#000000",
     "red"    : "#C91B00", "r": "#C91B00",
-    "green"  : "#00BF00", "g": "#00BF00",
+    "green"  : "#28D528", "g": "#28D528",
     "yellow" : "#EEEE55", "y": "#EEEE55",
-    "blue"   : "#007DFF", "b": "#007DFF",
+    "blue"   : "#339AFF", "b": "#339AFF",
     "magenta": "#AD83E9", "m": "#AD83E9", "p": "#AD83E9",
     "cyan"   : "#30E1FD", "c": "#30E1FD",
-    "white"  : "#FFFFFF", "w": "#FFFFFF",
+    "white"  : "#EEEEEE", "w": "#EEEEEE",
   }
 
   class Component:

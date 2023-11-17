@@ -55,8 +55,7 @@ class ModelManager:
     else: torch.save(self.model, rf"{file_path}")
 
     if os.path.exists(file_path):
-      file_name = os.path.basename(file_path)
-      self._class_notify(f"Save best model named {file_name} successfully!", notify_type="success")
+      self._class_notify(f"Save best model to {file_path} successfully!", notify_type="success")
     else:
       self._class_notify(f"Save best model error.", notify_type="error")
 
@@ -83,3 +82,8 @@ class ModelManager:
 
 
   def get_postfix(self): return f"{round(self.accuracy * 10000)}"  # 87.65%  ->  8765
+
+
+  def report(self):
+    """Report the best model."""
+    self._class_notify(f"Best model at the {self.epoch + 1} epoch with {self.accuracy:.2%} accuracy.", notify_type="info")

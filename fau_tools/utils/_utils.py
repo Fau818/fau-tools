@@ -29,7 +29,7 @@ def create_folder(path: str) -> str|None:
 
   if not os.path.isdir(path):
     from ._color_print import cprint
-    cprint(f"Error: Create experiment folder named {path} failed.", color="red")
+    cprint(f"Error: Create experiment folder in {path} failed.", color="red")
     return None
 
   return path
