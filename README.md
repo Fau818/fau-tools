@@ -1,8 +1,8 @@
 ## Introduction
 
-This is an individual module, which is mainly for **pytorch CNN** training.
+This is a small tool that uses the PyTorch framework, providing assistance in completing classification task using CNN.
 
-Moreover, it also supports some awesome features: saving model, saving training process, plotting figures and so on...
+Features: train model, print training process, save training files, plot figures, etc.
 
 ## Install
 
@@ -51,7 +51,7 @@ class CNN(nn.Module):
 
   def forward(self, x):
     x = self.conv(x)
-    x = x.flatten(1)  # same as x = x.view(x.size(0), -1)
+    x = x.flatten(1)
     return self.output(x)
 
 
@@ -79,21 +79,21 @@ optimizer = torch.optim.Adam(model.parameters(), lr)
 fau_tools.TaskRunner(model, train_loader, test_loader, loss_function, optimizer, total_epoch, exp_path="MNIST").train()
 ```
 
-Now, we can run the python file, and the training process will be visualized, just like the following picture.
+Now, we can run the python script, and the training process will be visualized as the following picture.
 
 ![training_visualization](github_attachment/training_visualization.png)
 
 > Three files named `best.pth`, `scalars.csv` and `exp_info.txt` will be saved.
 >
-> The first file is the trained model.
+> The first file is the weight of trained model.
 >
-> The second file records scalar value changes in the training process, which you can use matplotlib to visualize it.
+> The second file records scalar value changes in the training process.
 >
-> The third file saves some information about the experiment.
+> The third file saves information about the experiment.
 
 ---
 
-The above is the primary usage of this tool, but there are also some other snazzy features, which will be introduced later.
+The above is the primary usage of this tool, but there are also some other snazzy features, which will be introduced later. [TODO]
 
 ## END
 
