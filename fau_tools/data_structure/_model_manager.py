@@ -84,6 +84,6 @@ class ModelManager:
   def get_postfix(self): return f"{round(self.accuracy * 10000)}"  # 87.65%  ->  8765
 
 
-  def report(self):
+  def report(self, training_epoch: int):
     """Report the best model."""
-    self._class_notify(f"Best model at the {self.epoch + 1} epoch with {self.accuracy:.2%} accuracy.", notify_type="info")
+    self._class_notify(f"After {training_epoch + 1} training epochs, the best model at the {self.epoch + 1} epoch with {self.accuracy:.2%} accuracy.", notify_type="info")

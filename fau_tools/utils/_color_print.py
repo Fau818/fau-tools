@@ -80,10 +80,10 @@ class Color:
 
 
   @classmethod
-  def _get_color_pattern(cls, color: str, bold: bool=False, italic: bool=False, solid: bool=False) -> str:
+  def _get_color_pattern(cls, color: str, bold: bool=False, italic: bool=False, invert: bool=False) -> str:
     """Return the colorful string pattern except the BEGIN and END parts."""
-    def parse_color(color_hex, solid=False):
-      if not solid:
+    def parse_color(color_hex, invert=False):
+      if not invert:
         fg = cls._hex2dec(color_hex)
         return f"{cls.Component.fg_lead}{fg[0]};{fg[1]};{fg[2]}m"
       else:
@@ -95,7 +95,7 @@ class Color:
 
     color_hex = cls.BASIC_COLORS[color]
     style = (cls.Component.bold if bold else "") + (cls.Component.italic if italic else "")
-    return f"{style}{parse_color(color_hex, solid)}"
+    return f"{style}{parse_color(color_hex, invert)}"
 
 
   @classmethod
@@ -103,7 +103,7 @@ class Color:
     cls,
     *values,
     color: str="red",
-    bold: bool=False, italic: bool=False, solid: bool=False,
+    bold: bool=False, italic: bool=False, invert: bool=False,
     show: bool=True,
     sep: str=' ',
     end: str='\n',
@@ -118,7 +118,7 @@ class Color:
     color  : the color of the string
     bold   : whether to use bold text
     italic : whether to use italic text
-    solid  : whether to use the color as background color
+    invert : whether to use the color as background color
     show   : if is True, the colorful string will be printed; otherwise, will only be returned
     sep    : the kwarg in `print()` function
     end    : the kwarg in `print()` function
@@ -128,7 +128,7 @@ class Color:
     The colorful string.
 
     """
-    color_pattern = cls._get_color_pattern(color, bold, italic, solid)
+    color_pattern = cls._get_color_pattern(color, bold, italic, invert)
     color_string = f"{cls.Component.start}{color_pattern}{sep.join(str(value) for value in values)}{cls.Component.end}"
     if show: print(color_string, sep=sep, end=end, **kwargs)
     return color_string
@@ -157,7 +157,7 @@ class Color:
       title_color, content_color = color
     else: raise TypeError(cls.cprint(f"color should be a string or a tuple, but got {type(color)}.", color="red", show=False))
 
-    ctitle   = cls.cprint(f" {title} ", color=title_color, bold=True, solid=True, show=False)
+    ctitle   = cls.cprint(f" {title} ", color=title_color, bold=True, invert=True, show=False)
     cconcent = cls.cprint(content, color=content_color, show=False)
     ctext = " ".join((ctitle, cconcent))
 

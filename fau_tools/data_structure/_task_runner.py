@@ -161,7 +161,7 @@ class TaskRunner:
 
 
   def _after_train(self):
-    self.model_manager.report()
+    self.model_manager.report(self.cur_epoch)
 
     # =============================================
     # ========== Save files

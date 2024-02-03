@@ -26,7 +26,7 @@ reportUnusedExpression  = false
 
 [tool.poetry]
 name = "fau-tools"
-version = "2.0.3"
+version = "2.0.4"
 description = "A python module. The main function is for pytorch training."
 authors = ["Fau <Fau818@qq.com>"]
 license = "MIT"
