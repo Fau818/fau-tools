@@ -158,8 +158,8 @@ class Color:
     else: raise TypeError(cls.cprint(f"color should be a string or a tuple, but got {type(color)}.", color="red", show=False))
 
     ctitle   = cls.cprint(f" {title} ", color=title_color, bold=True, invert=True, show=False)
-    cconcent = cls.cprint(content, color=content_color, show=False)
-    ctext = " ".join((ctitle, cconcent))
+    ccontent = cls.cprint(content, color=content_color, show=False)
+    ctext = " ".join((ctitle, ccontent))
 
     if show: print(ctext)
     return ctext
