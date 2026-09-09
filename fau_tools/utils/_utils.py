@@ -1,8 +1,29 @@
-import typing
+import functools
 import os
 import time
+import typing
+from collections.abc import Sized
 
-import torch.nn as nn
+import torch
+import torch.utils.data as tdata
+from torch import nn
+
+from ._color_print import cprint
+
+__all__ = [
+  "calc_dataloader_sample_num",
+  "calc_feature_size",
+  "calc_time",
+  "create_folder",
+  "ensure_file_postfix",
+  "exit_with_error",
+  "time_to_human",
+]
+
+
+# `calc_time` hands back the signature it was given rather than a bare `(*args, **kwargs)`.
+_P = typing.ParamSpec("_P")
+_R = typing.TypeVar("_R")
 
 
 def exit_with_error(): raise SystemExit(1)
@@ -17,36 +38,38 @@ def ensure_file_postfix(file_path: str, postfix: str) -> str:
 def create_folder(path: str) -> str|None:
   """
   Create a folder with `path`; if `path` is exists, it will add postfix automatically.
+
   If create successfully, will return folder path; else will return `None`.
   """
-  if not os.path.exists(path): os.makedirs(path)
-  else:
+  if os.path.exists(path):
     post_num = 1
     while os.path.exists(f"{path}_{post_num}"): post_num += 1
-    else:
-      path = f"{path}_{post_num}"
-      os.makedirs(path)
+    path = f"{path}_{post_num}"
+  os.makedirs(path)
 
   if not os.path.isdir(path):
-    from ._color_print import cprint
     cprint(f"Error: Create experiment folder in {path} failed.", color="red")
     return None
 
   return path
 
 
-def calc_dataloader_sample_num(data_loader: nn.Module):
-  total_dataset_sample_num = len(data_loader.dataset)
-  if not data_loader.drop_last: return total_dataset_sample_num
+def calc_dataloader_sample_num(data_loader: tdata.DataLoader) -> int:
+  """Calculate the number of samples the loader actually yields."""
+  # With `drop_last`, the tail that cannot fill a whole batch never reaches the model.
+  if data_loader.drop_last:
+    assert data_loader.batch_size is not None  # a DataLoader rejects `drop_last` without automatic batching
+    return len(data_loader) * data_loader.batch_size
 
-  batch_size = min(len(data_loader.dataset), data_loader.batch_size)
-  if total_dataset_sample_num % batch_size == 0: return total_dataset_sample_num
-  return batch_size * (len(data_loader) - 1)
+  dataset = data_loader.dataset
+  assert isinstance(dataset, Sized), "an iterable-style dataset has no sample count"
+  return len(dataset)
 
 
-def calc_time(function: typing.Callable):
-  """A decorator to display the running time of a function."""
-  def wrapper(*args, **kwargs):
+def calc_time(function: typing.Callable[_P, _R]) -> typing.Callable[_P, _R]:
+  """Display the running time of the decorated function."""
+  @functools.wraps(function)
+  def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> _R:
     print('-' * 15, "BEGIN", function.__name__, '-' * 15)
     BEGIN = time.time()
     res = function(*args, **kwargs)
@@ -56,11 +79,10 @@ def calc_time(function: typing.Callable):
     print('-' * 15, " END ", function.__name__, '-' * 15)
     return res
 
-  wrapper.__name__ = function.__name__  # to keep the function origin name
   return wrapper
 
 
-def time_to_human(time: float|int) -> str:
+def time_to_human(time: float) -> str:
   """
   Convert time in seconds to the human-friendly time display.
 
@@ -89,24 +111,16 @@ def time_to_human(time: float|int) -> str:
   return "minor"
 
 
-# ------------------------------------------------------------
-# --------------- Auto calculate feature size
-# ------------------------------------------------------------
-# TODO: integrate to a class and test.
-def __get_value_in_height_and_width(value: int|tuple[int, int], value_name: str) -> tuple[int, int]:
-  if isinstance(value, tuple): return value
-  if isinstance(value, int): return value, value
-
-  raise TypeError(f"The type of {value_name} requires int|tuple, but got {type(value)}.")
-
-
-def _calc_value_after_layer(x: int, k_size: int, stride: int, padding: int) -> int:
-  return (x - k_size + 2 * padding) // stride + 1
-
+# ════════════════════════════════════════════════════════════
+# ═══════════════ Auto Calculate Feature Size ════════════════
+# ════════════════════════════════════════════════════════════
 
 def calc_feature_size(channel: int, height: int, width: int, sequential: nn.Sequential) -> int:
   """
   Calculate the number of neurons of the convolutional layer to fully connected layer.
+
+  Runs one forward pass over a zero tensor; `sequential` is put in eval mode for it and
+  restored afterwards.
 
   Parameters
   ----------
@@ -120,35 +134,19 @@ def calc_feature_size(channel: int, height: int, width: int, sequential: nn.Sequ
   An integer, indicating the number of neurons.
 
   """
-  # TODO: use `isinstance()` function.
-  CONV, POOL = "torch.nn.modules.conv", "torch.nn.modules.pooling"
-  for op in sequential:
-    if op.__module__ == CONV:
-      # get basic parameters
-      in_channel, out_channel = op.in_channels, op.out_channels
-      k_size, stride, padding = op.kernel_size, op.stride, op.padding
+  # Every layer already knows its own output shape. Re-deriving it per layer type meant
+  # silently skipping whatever the code did not recognize, such as `ConvTranspose2d`.
+  parameter = next(sequential.parameters(), None)
+  dummy = torch.zeros(
+    1, channel, height, width,
+    device=parameter.device if parameter is not None else None,
+    dtype=parameter.dtype if parameter is not None else None,
+  )
 
-      # illegal channel
-      if in_channel != channel: raise ValueError(f"Got {channel=}, but {in_channel=} in Conv2d.")
-
-      # get values in height and width
-      k_size_h, k_size_w = __get_value_in_height_and_width(k_size, "kernel_size")
-      stride_h, stride_w = __get_value_in_height_and_width(stride, "stride")
-      padding_h, padding_w = __get_value_in_height_and_width(padding, "padding")
-
-      # calculate
-      channel = out_channel
-      height = _calc_value_after_layer(height, k_size_h, stride_h, padding_h)
-      width = _calc_value_after_layer(width, k_size_w, stride_w, padding_w)
-    elif op.__module__ == POOL:
-      k_size, stride, padding = op.kernel_size, op.stride, op.padding
-
-      # get values in height and width
-      k_size_h, k_size_w = __get_value_in_height_and_width(k_size, "kernel_size")
-      stride_h, stride_w = __get_value_in_height_and_width(stride, "stride")
-      padding_h, padding_w = __get_value_in_height_and_width(padding, "padding")
-
-      height = _calc_value_after_layer(height, k_size_h, stride_h, padding_h)
-      width = _calc_value_after_layer(width, k_size_w, stride_w, padding_w)
-
-  return channel * height * width
+  # In train mode the pass would feed the dummy into BatchNorm's running statistics.
+  was_training = sequential.training
+  sequential.eval()
+  try:
+    with torch.no_grad(): return sequential(dummy).numel()
+  finally:
+    if was_training: sequential.train()

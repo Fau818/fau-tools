@@ -8,6 +8,10 @@ Features: train model, print training process, save training files, plot figures
 
 `pip install fau-tools`
 
+The helpers in `fau_tools.torch_tools` that read and plot a training record need two extra packages:
+
+`pip install "fau-tools[plot]"`
+
 ## Usage
 
 ### import

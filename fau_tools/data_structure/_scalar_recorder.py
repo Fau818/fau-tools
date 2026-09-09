@@ -1,19 +1,22 @@
 import os
 
-from fau_tools import utils
+import fau_tools.utils as utils
 
 
 class ScalarRecorder:
   """Record the process of training."""
 
+  loss_list: list[float]
+  accuracy_list: list[float]
+
   def __init__(self):
-    self.loss_list, self.accuracy_list = list(), list()
+    self.loss_list, self.accuracy_list = [], []
 
 
   @classmethod
-  def _class_notify(cls, content, notify_type):
+  def _class_notify(cls, content, level):
     """Report class notice."""
-    utils.notify(cls.__name__, content=content, notify_type=notify_type)
+    utils.notify(cls.__name__, content=content, level=level)
 
 
   def update(self, loss_value: float, accuracy: float):
@@ -44,14 +47,14 @@ class ScalarRecorder:
 
     """
     file_path = utils.ensure_file_postfix(file_path, ".csv")
-    with open(rf"{file_path}", "w") as file:
-      col_list = ", ".join(("loss", "accuracy")) + "\n"
+    with open(file_path, "w") as file:
+      col_list = "loss, accuracy\n"
       file.write(col_list)
       for loss, accuracy in zip(self.loss_list, self.accuracy_list):
         line = f"{loss:.6f}, {accuracy:.6f}\n"
         file.write(line)
 
     if os.path.exists(file_path):
-      self._class_notify(f"Save training process file to {file_path} successfully!", notify_type="success")
+      self._class_notify(f"Save training process file to {file_path} successfully!", level="success")
     else:
-      self._class_notify(f"Save training process file error.", notify_type="error")
+      self._class_notify("Save training process file error.", level="error")

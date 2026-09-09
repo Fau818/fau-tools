@@ -1,3 +1,5 @@
-from ._utils import *
+"""Helpers for colorful terminal output, device selection, timing and file handling."""
+
 from ._color_print import *
-from fau_tools.utils import _device as device
+from ._device import *
+from ._utils import *

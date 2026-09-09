@@ -1,15 +1,19 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import final
 
 import torch
-import torch.nn as nn
 import torch.utils.data as tdata
+from torch import nn
 
-import fau_tools
-from fau_tools import utils
-from fau_tools.data_structure import ModelManager, ScalarRecorder, TimeManager
+import fau_tools.utils as utils
+
+from ._model_manager import ModelManager
+from ._scalar_recorder import ScalarRecorder
+from ._time_manager import TimeManager
 
 
+@final
 class TaskRunner:
   def __init__(
     self,
@@ -18,10 +22,10 @@ class TaskRunner:
     loss_function: nn.Module, optimizer: torch.optim.Optimizer,
     total_epoch: int,
     *,
-    patience: int=None,
-    exp_path: str=None, save_model: bool=True,
+    patience: int|None=None,
+    exp_path: str|None=None, save_model: bool=True,
     clearml_task=None,
-    device: str|torch.device=None
+    device: str|torch.device|None=None
   ):
     """
     Classification Task Runner.
@@ -41,9 +45,7 @@ class TaskRunner:
     device        : the device used in pytorch; if is `None`, will be determined automatically
 
     """
-    # =============================================
-    # ========== Set parameters to attributes
-    # =============================================
+    # ─── Set parameters to attributes ───────────────────────
     self.model = model
     self.train_loader, self.test_loader = train_loader, test_loader
     self.loss_function, self.optimizer = loss_function, optimizer
@@ -56,24 +58,18 @@ class TaskRunner:
 
     self.clearml_task = clearml_task if self._check_clearml_task(clearml_task) else None
 
-    self.device, self.device_name = utils.device.parse_device(device, return_name=True)
+    self.device, self.device_name = utils.parse_device(device, return_name=True)
 
-    # =============================================
-    # ========== Attributes
-    # =============================================
+    # ─── Attributes ─────────────────────────────────────────
     self.train_sample_num = utils.calc_dataloader_sample_num(self.train_loader)
     self.test_sample_num  = utils.calc_dataloader_sample_num(self.test_loader)
 
-    # =============================================
-    # ========== Module attributes
-    # =============================================
+    # ─── Module attributes ──────────────────────────────────
     self.model_manager   = ModelManager()
     self.scalar_recorder = ScalarRecorder()
     self.time_manager    = TimeManager()
 
-    # =============================================
-    # ========== Scalars
-    # =============================================
+    # ─── Scalars ────────────────────────────────────────────
     self.cur_epoch = 0  # NOTE: Start from zero.
     # NOTE: Consider use ModelManager to manage them.
     # The init loss value should be None, and use a function to update it.
@@ -85,9 +81,9 @@ class TaskRunner:
 
 
   @classmethod
-  def _class_notify(cls, content, notify_type):
+  def _class_notify(cls, content, level):
     """Report class notice."""
-    utils.notify(cls.__name__, content=content, notify_type=notify_type)
+    utils.notify(cls.__name__, content=content, level=level)
 
 
   def _check_clearml_task(self, clearml_task):
@@ -96,27 +92,25 @@ class TaskRunner:
 
     # Check the clearml module.
     try:
-      from clearml import Task
+      from clearml import Task  # pyright: ignore[reportMissingImports]
     except ImportError:
-      self._class_notify("Run `from clearml import Task` error.", notify_type="error")
+      self._class_notify("Run `from clearml import Task` error.", level="error")
       return False
 
     # Check object type.
     if not isinstance(clearml_task, Task):
-      self._class_notify("TypeError: `clearml_task` should be the `clearml.Task` type.", notify_type="error")
+      self._class_notify("TypeError: `clearml_task` should be the `clearml.Task` type.", level="error")
       return False
 
-    import clearml
-    self.clearml_task: clearml.Task
-    self._class_notify("ClearML task is enabled.", notify_type="info")
+    self._class_notify("ClearML task is enabled.", level="info")
     return True
 
 
   def _before_train(self):
     # Show Info
-    self._class_notify(f"Training in {self.device_name} device.", notify_type="info")
+    self._class_notify(f"Training in {self.device_name} device.", level="info")
     if self.train_loader.batch_size == 1:
-      self._class_notify("The batch_size is set to 1; if the net uses BN will raise an error.", notify_type="warn")
+      self._class_notify("The batch_size is set to 1; if the net uses BN will raise an error.", level="warn")
 
     self.model.to(self.device)
     self.model.train()
@@ -136,7 +130,9 @@ class TaskRunner:
     features, targets = features.to(self.device), targets.to(self.device)
     outputs: torch.Tensor = self.model(features)
     loss: torch.Tensor    = self.loss_function(outputs, targets)
-    self.train_loss += loss.item()
+    # `loss` is averaged over the batch, so weight it by the batch size to keep
+    # `train_loss` a sum over samples; the last batch may hold fewer of them.
+    self.train_loss += loss.item() * features.size(0)
 
     # Backward
     self.optimizer.zero_grad()
@@ -161,13 +157,19 @@ class TaskRunner:
 
 
   def _after_train(self):
-    self.model_manager.report(self.cur_epoch)
+    # A run without any finished epoch (e.g. `total_epoch` is 0) leaves the manager empty.
+    if self.model_manager.epoch is None:
+      self._class_notify("No epoch was finished; there is no best model to report or save.", level="warn")
+    else:
+      self.model_manager.report(self.cur_epoch)
+      if self.exp_path is not None: self._save_files()
 
-    # =============================================
-    # ========== Save files
-    # =============================================
-    if self.exp_path is None: return
+    # The task has to be closed even when nothing was saved.
+    if self.clearml_task is not None: self.clearml_task.close()
 
+
+  def _save_files(self):
+    """Save the experiment files into a folder named after `exp_path`, then upload them to ClearML."""
     folder_path   = f"{self.exp_path}_{self.model_manager.get_postfix()}"
     folder_path   = utils.create_folder(folder_path)
     if folder_path is None: return
@@ -179,26 +181,25 @@ class TaskRunner:
     self._save_experiment(exp_info_path)
     self.scalar_recorder.save(scalar_path)
     if self.save_model: self.model_manager.save(model_path)
-    if self.clearml_task:
+    if self.clearml_task is not None:
       self.clearml_task.upload_artifact("experiment information", exp_info_path)
       self.clearml_task.upload_artifact("scalars variation", scalar_path)
-      self.clearml_task.close()
 
 
   def calc_accuracy(self, data_loader: tdata.DataLoader) -> float:
     total_positive_num = 0
 
     # Calculate positive number
+    was_training = self.model.training  # this method is public: leave the mode as the caller had it
     self.model.eval()
     with torch.no_grad():
       for features, targets in data_loader:
-        features: torch.Tensor    = features.to(self.device)
-        targets: torch.Tensor     = targets.to(self.device)
+        features, targets         = features.to(self.device), targets.to(self.device)
         outputs: torch.Tensor     = self.model(features)
         predictions: torch.Tensor = outputs.argmax(1)
         # loss: torch.Tensor = self.loss_function(outputs, targets)
-        total_positive_num += sum(predictions.eq(targets)).item()
-    self.model.train()
+        total_positive_num += predictions.eq(targets).sum().item()
+    if was_training: self.model.train()
 
     accuracy = total_positive_num / utils.calc_dataloader_sample_num(data_loader)
     return round(accuracy, 6)
@@ -226,7 +227,7 @@ class TaskRunner:
     loss_section     = utils.cprint(f"loss: {self.train_average_loss:.6f}", color="red", show=False)
     accuracy_section = utils.cprint(f"accuracy: {self.test_accuracy:.2%}", color="green", show=False)
 
-    progress_bar = "  ".join((progress_section, time_section, loss_section, accuracy_section))
+    progress_bar = f"{progress_section}  {time_section}  {loss_section}  {accuracy_section}"
     print(progress_bar)
 
 
@@ -243,11 +244,15 @@ class TaskRunner:
     clearml_logger = self.clearml_task.get_logger()
     clearml_logger.report_scalar("loss", "train/loss", self.train_average_loss, self.cur_epoch)
     clearml_logger.report_scalar("metric", "test/accuracy", self.test_accuracy, self.cur_epoch)
-    clearml_logger.report_scalar("learning_rate", "lr", self.optimizer.param_groups[0]["lr"], self.cur_epoch)
+    # A custom optimizer is not required to keep an "lr" entry in its param groups.
+    param_groups = getattr(self.optimizer, "param_groups", ())
+    if param_groups and "lr" in param_groups[0]:
+      clearml_logger.report_scalar("learning_rate", "lr", param_groups[0]["lr"], self.cur_epoch)
 
 
   def _stop_train(self):
-    if self.patience is None: return False
+    # There is nothing to early-stop on before the first model is recorded.
+    if self.patience is None or self.model_manager.epoch is None: return False
 
     gap = self.cur_epoch - self.model_manager.epoch
     return gap >= self.patience
@@ -257,7 +262,7 @@ class TaskRunner:
     file_path = utils.ensure_file_postfix(file_path, ".txt")
     with open(file_path, "w") as file:
       # Save experiment datetime
-      file.write(f"experiment end time: {datetime.now()}\n\n")
+      file.write(f"experiment end time: {datetime.now(timezone.utc).astimezone()}\n\n")
       # Save loss function and optimizer
       file.write(f"optimizer:\n{self.optimizer}\n")
       file.write(f"{'-' * 20}\n")
@@ -265,6 +270,7 @@ class TaskRunner:
       file.write(f"{'-' * 20}\n")
       # Save total epoch and batch size
       file.write(f"total_epoch: {self.total_epoch}\n")
+      file.write(f"trained_epoch: {self.cur_epoch + 1}\n")  # smaller than total_epoch when early stopped
       file.write(f"batch size: {self.train_loader.batch_size}\n")
       file.write(f"{'-' * 20}\n")
       # Save data number
@@ -272,7 +278,7 @@ class TaskRunner:
       file.write(f"test_data_number : {self.test_sample_num}\n")
       # save best information
       file.write(f"{'-' * 20}\n")
-      file.write(f"The best model in the {self.model_manager.epoch} epoch.\n")
+      file.write(f"The best model in the {self.model_manager.get_best_epoch()} epoch.\n")
       # save time
       file.write(f"{'-' * 20}\n")
       cost_time = utils.time_to_human(self.time_manager.get_elapsed_time())
@@ -280,12 +286,12 @@ class TaskRunner:
       file.write(f"Training cost: {cost_time}\n")
 
     if os.path.exists(file_path):
-      self._class_notify(f"Save experiment information file to {file_path} successfully!", notify_type="success")
+      self._class_notify(f"Save experiment information file to {file_path} successfully!", level="success")
     else:
-      self._class_notify(f"Save experiment information file error.", notify_type="error")
+      self._class_notify("Save experiment information file error.", level="error")
 
 
-  @fau_tools.calc_time
+  @utils.calc_time
   def train(self):
     self._before_train()
 
@@ -299,7 +305,7 @@ class TaskRunner:
 
       stop_train_flag = self._after_epoch()
       if stop_train_flag is True:
-        self._class_notify(f"Early stop: The model has gone through {self.patience} epochs without being optimized.", notify_type="info")
+        self._class_notify(f"Early stop: The model has gone through {self.patience} epochs without being optimized.", level="info")
         break
 
     self._after_train()

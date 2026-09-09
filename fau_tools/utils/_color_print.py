@@ -1,5 +1,11 @@
+import typing
+from collections.abc import Sequence
+
+__all__ = ["Color", "cprint", "custom_notify", "notify", "notify_exception"]
+
+
 class Color:
-  BASIC_COLORS = {
+  BASIC_COLORS: typing.ClassVar[dict[str, str]] = {
     "black"  : "#000000", "B": "#000000",
     "red"    : "#C91B00", "r": "#C91B00",
     "green"  : "#28D528", "g": "#28D528",
@@ -10,8 +16,10 @@ class Color:
     "white"  : "#EEEEEE", "w": "#EEEEEE",
   }
 
+  @typing.final
   class Component:
     """A lua style dict to store components of color print."""
+
     start   = "\033["
     end     = "\033[0m"
     fg_lead = "38;2;"
@@ -55,8 +63,8 @@ class Color:
     A string with format `#RRGGBB` represents the color in hexadecimal.
 
     """
-    color_hex = "".join(hex(v_dec)[2:].zfill(2).upper() for v_dec in color_dec)
-    return color_hex
+    color_hex = "".join(f"{v_dec:02X}" for v_dec in color_dec)
+    return f"#{color_hex}"
 
 
   @classmethod
@@ -91,7 +99,7 @@ class Color:
         fg = cls._hex2dec(cls._get_fg_by_bg(bg))
         return f"{cls.Component.fg_lead}{fg[0]};{fg[1]};{fg[2]};{cls.Component.bg_lead}{bg[0]};{bg[1]};{bg[2]}m"
 
-    if color not in cls.BASIC_COLORS: raise ValueError(f"color should be defined in `{cls.BASIC_COLORS.__name__}`, but got `{color}`.")
+    if color not in cls.BASIC_COLORS: raise ValueError(f"color should be one of {sorted(cls.BASIC_COLORS)}, but got `{color}`.")
 
     color_hex = cls.BASIC_COLORS[color]
     style = (cls.Component.bold if bold else "") + (cls.Component.italic if italic else "")
@@ -130,12 +138,12 @@ class Color:
     """
     color_pattern = cls._get_color_pattern(color, bold, italic, invert)
     color_string = f"{cls.Component.start}{color_pattern}{sep.join(str(value) for value in values)}{cls.Component.end}"
-    if show: print(color_string, sep=sep, end=end, **kwargs)
+    if show: print(color_string, end=end, **kwargs)
     return color_string
 
 
   @classmethod
-  def custom_notify(cls, title: str, content: str, color: str|tuple[str, str], show: bool=True) -> str:
+  def custom_notify(cls, title: str, content: str, color: str|Sequence[str], show: bool=True) -> str:
     """
     Customize the notice.
 
@@ -143,7 +151,7 @@ class Color:
     ----------
     title   : the title of notice
     content : the content of notice
-    color   : a string or tuple indicates the color of title and content
+    color   : one color for both parts, or a pair of colors for the title and the content
     show    : whether to print
 
     Returns
@@ -158,41 +166,41 @@ class Color:
     else: raise TypeError(cls.cprint(f"color should be a string or a tuple, but got {type(color)}.", color="red", show=False))
 
     ctitle   = cls.cprint(f" {title} ", color=title_color, bold=True, invert=True, show=False)
-    cconcent = cls.cprint(content, color=content_color, show=False)
-    ctext = " ".join((ctitle, cconcent))
+    ccontent = cls.cprint(content, color=content_color, show=False)
+    ctext = f"{ctitle} {ccontent}"
 
     if show: print(ctext)
     return ctext
 
 
   @classmethod
-  def notify(cls, title: str, content: str, notify_type: str="info", show: bool=True) -> str:
+  def notify(cls, title: str, content: str, level: str="info", show: bool=True) -> str:
     """
     Notify a message.
 
     Parameters
     ----------
-    title       : the title of notice
-    content     : the content of notice
-    notify_type : the type of notice
-    show        : whether to print
+    title   : the title of notice
+    content : the content of notice
+    level   : one of `info`, `warn`, `error`, `success`
+    show    : whether to print
 
     Returns
     -------
     The colorful string.
 
     """
-    TYPE_COLORS = {
+    LEVEL_COLORS = {
       "info"   : "blue",
       "warn"   : "yellow", "warning": "yellow",
       "error"  : "red",
       "success": "green",
     }
 
-    notify_type = notify_type.lower()
-    if notify_type not in TYPE_COLORS.keys(): raise ValueError(cls.cprint("`notify_type` should be defined in `TYPE_COLORS`.", color="red", show=False))
+    level = level.lower()
+    if level not in LEVEL_COLORS: raise ValueError(cls.cprint(f"level should be one of {sorted(LEVEL_COLORS)}, but got `{level}`.", color="red", show=False))
 
-    ctext = cls.custom_notify(title, content, TYPE_COLORS[notify_type], show=False)
+    ctext = cls.custom_notify(title, content, LEVEL_COLORS[level], show=False)
 
     if show: print(ctext)
     return ctext
@@ -200,7 +208,7 @@ class Color:
 
   @classmethod
   def notify_exception(cls, error: Exception, exit: bool=True):
-    cls.notify(error.__class__.__name__, error, notify_type="error")
+    cls.notify(error.__class__.__name__, str(error), level="error")
     if exit: raise SystemExit(1)
 
 

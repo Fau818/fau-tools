@@ -1,7 +1,7 @@
 # Fau
-test.py
 test.csv
 datasets/
+MNIST_*/
 
 
 # utility
@@ -115,6 +115,7 @@ celerybeat.pid
 .venv
 env/
 venv/
+venv.nosync/
 ENV/
 env.bak/
 venv.bak/
@@ -128,6 +129,9 @@ venv.bak/
 
 # mkdocs documentation
 /site
+
+# ruff
+.ruff_cache/
 
 # mypy
 .mypy_cache/

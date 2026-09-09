@@ -1,44 +1,64 @@
-[tool.pyright]
-# https://github.com/microsoft/pyright/blob/main/docs/configuration.md
-
-# include = ["*"]
-exclude = [
-  "**/.idea",
-  "**/.vscode",
-  "**/__pycache__",
-  "**/.git",
-  "**/venv",
-]
-extraPaths = ["typings"]
-# defineConstant = { DEBUG = true }
-pythonPlatform = "Linux"  # values: "Windows" | "Darwin" | "Linux" | "All"
-
-typeCheckingMode = "off"  # values: "off" | "basic" | "strict"
-# values: true | false | "none" | "information" | "warning" | "error"
-# reportMissingImports    = false  # by flake8
-# reportUnusedImport      = false
-reportGeneralTypeIssues = false
-# reportMissingTypeStubs  = false
-reportUnusedExpression  = false
-
-# useLibraryCodeForTypes = false
-
-
-[tool.poetry]
+[project]
 name = "fau-tools"
-version = "2.0.4"
+version = "2.1.0"
 description = "A python module. The main function is for pytorch training."
-authors = ["Fau <Fau818@qq.com>"]
-license = "MIT"
 readme = "README.md"
-packages = [{include = "fau_tools"}]
-homepage   = "https://github.com/Fau818/fau-tools"
-repository = "https://github.com/Fau818/fau-tools"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Fau", email = "Fau818@qq.com" }]
+keywords = ["pytorch", "training", "classification", "cnn"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.10"
+# `fau_tools` imports torch at module level; `torch.backends.mps` needs 1.12.
+dependencies = ["torch>=1.12"]
 
+[project.optional-dependencies]
+# `fau_tools.torch_tools` imports these inside its functions, only when a record is read or drawn.
+# HINT: clearml is deliberately absent
+plot = ["pandas>=1.4", "matplotlib>=3.5"]
+
+[project.urls]
+Homepage = "https://github.com/Fau818/fau-tools"
+Repository = "https://github.com/Fau818/fau-tools"
+
+[dependency-groups]
+dev = ["fau-tools[plot]", "torchvision>=0.13"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["fau_tools"]
+
+# These stay out of git through a global ignore, so keep them out of the sdist too.
+[tool.hatch.build.targets.sdist]
+exclude = ["CLAUDE.md", ".claude", "Makefile", "uv.lock"]
+
+
+[tool.ruff]
+line-length = 120
+indent-width = 2
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint]
+extend-select = ["D"]
+ignore = [
+  "D100", "D101", "D102", "D103", "D105", "D107",  # missing docstrings
+  "D212",                                          # summary may start on the line below `"""`
+  "E701", "E702",                                  # one-line `if cond: body` is the style here
+  "F401", "F403", "F405",                          # `__init__.py` re-exports through star imports
+  "F821",
+  "PLR0402",                                       # `import fau_tools.utils as utils` avoids an import cycle
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
