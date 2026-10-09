@@ -29,10 +29,12 @@ The tutor will use a simple example to help you get started quickly!
 **The following example uses Fau-tools to train a model in MNIST hand-written digits dataset.**
 
 ```python
+from typing import override
+
 import torch
-import torch.nn as nn
 import torch.utils.data as tdata
 import torchvision
+from torch import nn
 
 import fau_tools
 
@@ -48,11 +50,11 @@ class CNN(nn.Module):
 
       nn.Conv2d(16, 32, 3, 1, 1),  # -> (32, 14, 14)
       nn.ReLU(),
-      nn.MaxPool2d(2)  # -> (32, 7, 7)
+      nn.MaxPool2d(2),  # -> (32, 7, 7)
     )
     self.output = nn.Linear(32 * 7 * 7, 10)
 
-
+  @override
   def forward(self, x):
     x = self.conv(x)
     x = x.flatten(1)
@@ -61,18 +63,18 @@ class CNN(nn.Module):
 
 # Hyper Parameters definition
 total_epoch = 10
-lr = 1E-2
+lr = 1e-2
 batch_size = 1024
 
 # Load dataset
-train_data      = torchvision.datasets.MNIST('datasets', True, torchvision.transforms.ToTensor(), download=True)
-test_data       = torchvision.datasets.MNIST('datasets', False, torchvision.transforms.ToTensor())
+train_data = torchvision.datasets.MNIST("datasets", True, torchvision.transforms.ToTensor(), download=True)
+test_data = torchvision.datasets.MNIST("datasets", False, torchvision.transforms.ToTensor())
 train_data.data = train_data.data[:6000]  # mini data
-test_data.data  = test_data.data[:2000]  # mini data
+test_data.data = test_data.data[:2000]  # mini data
 
 # Get data loader
 train_loader = tdata.DataLoader(train_data, batch_size, True)
-test_loader  = tdata.DataLoader(test_data, batch_size)
+test_loader = tdata.DataLoader(test_data, batch_size)
 
 # Initialize model, optimizer and loss function
 model = CNN()
